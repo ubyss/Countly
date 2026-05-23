@@ -11,6 +11,11 @@
   --countly-accent-soft: #f0efff;
   --countly-shadow: 0 14px 34px rgba(20, 24, 45, 0.09), 0 2px 8px rgba(20, 24, 45, 0.04);
   --countly-subtle-shadow: 0 7px 18px rgba(20, 24, 45, 0.08);
+  --countly-nav: rgba(255, 255, 255, 0.96);
+  --countly-input: #ffffff;
+  --countly-input-text: #202438;
+  --countly-card: #ffffff;
+  --countly-shell-bg: #ffffff;
 }
 
 * {
@@ -44,9 +49,33 @@ label {
 
 .countly-application-shell {
   min-height: 100vh;
+  color: var(--countly-text);
   background:
     radial-gradient(circle at 50% 0%, rgba(73, 73, 216, 0.04), transparent 32rem),
-    #ffffff;
+    var(--countly-shell-bg);
+}
+
+.countly-application-shell[data-theme="dark"] {
+  --countly-page: #101218;
+  --countly-text: #f4f6fb;
+  --countly-muted: #a2a9ba;
+  --countly-soft-muted: #858da0;
+  --countly-border: #2b3040;
+  --countly-border-strong: #3a4052;
+  --countly-panel: #171a23;
+  --countly-accent: #8d8aff;
+  --countly-accent-dark: #a5a2ff;
+  --countly-accent-soft: rgba(141, 138, 255, 0.14);
+  --countly-shadow: 0 18px 44px rgba(0, 0, 0, 0.28), 0 2px 10px rgba(0, 0, 0, 0.24);
+  --countly-subtle-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+  --countly-nav: rgba(16, 18, 24, 0.94);
+  --countly-input: #11141c;
+  --countly-input-text: #f0f2f8;
+  --countly-card: #171a23;
+  --countly-shell-bg: #101218;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(141, 138, 255, 0.11), transparent 32rem),
+    var(--countly-shell-bg);
 }
 
 .countly-navigation-bar {
@@ -60,7 +89,7 @@ label {
   min-height: 76px;
   padding: 0 66px;
   border-bottom: 1px solid var(--countly-border);
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--countly-nav);
   backdrop-filter: blur(16px);
 }
 
@@ -103,7 +132,7 @@ label {
   padding: 0 19px;
   border: 0;
   border-radius: 8px;
-  color: #43485a;
+  color: var(--countly-muted);
   background: transparent;
   cursor: pointer;
   font-size: 15px;
@@ -119,7 +148,21 @@ label {
 .countly-header-actions {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 12px;
+}
+
+.countly-theme-toggle {
+  display: inline-flex;
+  width: 46px;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--countly-border);
+  border-radius: 8px;
+  color: var(--countly-text);
+  background: var(--countly-card);
+  box-shadow: 0 1px 3px rgba(20, 24, 45, 0.05);
+  cursor: pointer;
 }
 
 .countly-row-action {
@@ -128,7 +171,7 @@ label {
   justify-content: center;
   border: 0;
   background: transparent;
-  color: #2f3448;
+  color: var(--countly-text);
   cursor: pointer;
 }
 
@@ -183,14 +226,16 @@ label {
 
 .countly-creation-fields {
   display: grid;
-  grid-template-columns: 262px minmax(0, 1fr);
+  width: min(740px, 100%);
+  grid-template-columns: minmax(230px, 280px) minmax(260px, 340px);
   grid-template-areas:
-    "image fields"
-    ". submit";
-  column-gap: 28px;
+    "preview fields"
+    "preview submit";
+  column-gap: 34px;
   row-gap: 20px;
-  align-items: stretch;
-  margin-top: 31px;
+  align-items: center;
+  justify-content: center;
+  margin: 31px auto 0;
 }
 
 .countly-image-uploader {
@@ -207,7 +252,7 @@ label {
   border: 1px dashed #cfd4df;
   border-radius: 10px;
   color: var(--countly-accent);
-  background: #ffffff;
+  background: var(--countly-input);
   background-position: center;
   background-size: cover;
   cursor: pointer;
@@ -217,8 +262,8 @@ label {
 .countly-form-inputs {
   grid-area: fields;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px 28px;
+  grid-template-columns: 1fr;
+  gap: 20px;
   align-self: start;
 }
 
@@ -238,14 +283,14 @@ label {
 .countly-image-uploader small,
 .countly-image-uploader em {
   display: block;
-  color: #4d566c;
+  color: var(--countly-muted);
   font-size: 13px;
   line-height: 1.35;
 }
 
 .countly-image-uploader em {
   margin-top: 10px;
-  color: #7b8194;
+  color: var(--countly-soft-muted);
   font-style: normal;
 }
 
@@ -277,7 +322,7 @@ label {
 }
 
 .countly-field-group span {
-  color: #22263a;
+  color: var(--countly-text);
   font-size: 13px;
   font-weight: 600;
 }
@@ -289,8 +334,8 @@ label {
   width: 100%;
   border: 1px solid var(--countly-border-strong);
   border-radius: 8px;
-  color: #202438;
-  background: #ffffff;
+  color: var(--countly-input-text);
+  background: var(--countly-input);
   box-shadow: 0 1px 3px rgba(20, 24, 45, 0.05);
 }
 
@@ -304,7 +349,7 @@ label {
 
 .countly-field-group input::placeholder,
 .countly-field-group textarea::placeholder {
-  color: #8c94a6;
+  color: var(--countly-soft-muted);
 }
 
 .countly-field-group textarea {
@@ -326,7 +371,7 @@ label {
   align-items: center;
   height: 52px;
   padding: 0 15px;
-  color: #596276;
+  color: var(--countly-muted);
   cursor: pointer;
   text-align: left;
 }
@@ -334,14 +379,14 @@ label {
 .countly-date-display {
   overflow: hidden;
   padding: 0 14px;
-  color: #32384c;
+  color: var(--countly-input-text);
   font-size: 14px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .countly-date-display--empty {
-  color: #6e7586;
+  color: var(--countly-soft-muted);
 }
 
 .countly-calendar-popover {
@@ -353,7 +398,7 @@ label {
   padding: 14px;
   border: 1px solid var(--countly-border);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--countly-card);
   box-shadow: 0 18px 40px rgba(20, 24, 45, 0.16), 0 2px 10px rgba(20, 24, 45, 0.06);
 }
 
@@ -386,8 +431,8 @@ label {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  color: #4e566b;
-  background: #f6f7fb;
+  color: var(--countly-muted);
+  background: var(--countly-accent-soft);
 }
 
 .countly-calendar-popover-header button:hover,
@@ -408,7 +453,7 @@ label {
 }
 
 .countly-calendar-weekdays span {
-  color: #7b8295;
+  color: var(--countly-soft-muted);
   font-size: 11px;
   font-weight: 700;
   text-align: center;
@@ -421,7 +466,7 @@ label {
 }
 
 .countly-calendar-day {
-  color: #23283c;
+  color: var(--countly-text);
   background: transparent;
   font-size: 13px;
   font-weight: 650;
@@ -435,7 +480,7 @@ label {
 
 .countly-submit-button {
   grid-area: submit;
-  justify-self: end;
+  justify-self: stretch;
   align-self: end;
   min-width: 186px;
   padding: 0 23px;
@@ -470,8 +515,8 @@ label {
   align-items: center;
   justify-content: center;
   border-radius: 7px;
-  color: #787e8e;
-  background: #f0f1f5;
+  color: var(--countly-muted);
+  background: var(--countly-accent-soft);
   font-size: 13px;
   font-weight: 700;
 }
@@ -485,8 +530,8 @@ label {
   padding: 0 12px 0 15px;
   border: 1px solid var(--countly-border);
   border-radius: 8px;
-  color: #4f5668;
-  background: #ffffff;
+  color: var(--countly-muted);
+  background: var(--countly-card);
   box-shadow: 0 1px 3px rgba(20, 24, 45, 0.04);
   font-size: 13px;
 }
@@ -499,13 +544,15 @@ label {
   appearance: none;
   border: 0;
   outline: 0;
-  color: #33384b;
+  color: var(--countly-input-text);
   background: transparent;
 }
 
 .countly-countdown-stack {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 260px));
+  gap: 18px;
+  justify-content: start;
 }
 
 .countly-calendar-stack {
@@ -514,81 +561,161 @@ label {
 }
 
 .countly-countdown-card {
-  display: grid;
-  grid-template-columns: 198px minmax(220px, 1fr) 42px;
-  grid-template-areas:
-    "image details action"
-    "time time time";
-  align-items: start;
-  gap: 18px 24px;
-  min-height: 123px;
-  padding: 12px 16px 12px 10px;
+  position: relative;
+  display: flex;
+  min-width: 0;
+  aspect-ratio: 3 / 4;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
   border: 1px solid var(--countly-border);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--countly-card);
   box-shadow: var(--countly-subtle-shadow);
 }
 
+.countly-countdown-card--preview {
+  grid-area: preview;
+  align-self: center;
+  width: min(100%, 280px);
+  box-shadow: none;
+}
+
+.countly-countdown-card--preview .countly-countdown-image {
+  min-height: 0;
+}
+
 .countly-countdown-image {
-  grid-area: image;
+  position: relative;
   display: flex;
-  width: 198px;
-  height: 103px;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  overflow: visible;
   color: var(--countly-accent);
   background-position: center;
   background-size: cover;
 }
 
+.countly-countdown-image::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(180deg, rgba(10, 12, 18, 0.08), rgba(10, 12, 18, 0.62));
+}
+
 .countly-countdown-image--empty {
-  border: 1px dashed #cfd4df;
-  background: #f8f9fc;
+  background: linear-gradient(135deg, var(--countly-accent-soft), rgba(73, 73, 216, 0.05));
+}
+
+.countly-countdown-image--empty svg {
+  position: relative;
+  z-index: 1;
+}
+
+.countly-countdown-image input {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.countly-preview-upload-hint {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  max-width: 160px;
+  flex-direction: column;
+  align-items: center;
+  color: var(--countly-accent);
+  text-align: center;
+}
+
+.countly-preview-upload-hint strong {
+  margin-top: 10px;
+  color: var(--countly-text);
+  font-size: 14px;
+}
+
+.countly-preview-upload-hint span,
+.countly-preview-upload-hint em {
+  margin-top: 5px;
+  color: var(--countly-muted);
+  font-size: 12px;
+  font-style: normal;
+  line-height: 1.3;
 }
 
 .countly-countdown-details {
-  grid-area: details;
-  align-self: center;
+  position: relative;
+  flex: 0 0 auto;
   min-width: 0;
+  min-height: 0;
+  margin: -10px 12px 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--countly-border);
+  border-radius: 8px;
+  background: var(--countly-card);
+  box-shadow: 0 8px 18px rgba(20, 24, 45, 0.1);
 }
 
 .countly-countdown-details h3 {
-  margin: 0 0 17px;
-  color: #111528;
-  font-size: 20px;
-  line-height: 1.15;
-  font-weight: 730;
-  letter-spacing: -0.015em;
+  margin: 0 0 6px;
+  color: var(--countly-text);
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 .countly-countdown-meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 11px;
-  color: #596276;
-  font-size: 15px;
+  gap: 7px;
+  color: var(--countly-muted);
+  font-size: 12px;
+}
+
+.countly-countdown-meta svg {
+  width: 14px;
+  height: 14px;
+}
+
+.countly-countdown-details p {
+  display: none;
 }
 
 .countly-time-grid {
-  grid-area: time;
+  position: absolute;
+  right: 14px;
+  bottom: 24px;
+  left: 14px;
+  z-index: 2;
   display: grid;
-  width: 100%;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: center;
-  gap: 14px;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(12, 14, 20, 0.62);
+  backdrop-filter: blur(14px);
 }
 
 .countly-time-metric {
   display: flex;
+  min-width: 0;
   height: 78px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--countly-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--countly-card);
 }
 
 .countly-time-metric strong {
@@ -601,27 +728,89 @@ label {
 
 .countly-time-metric span {
   margin-top: 9px;
-  color: #353a4e;
+  color: var(--countly-text);
   font-size: 13px;
+}
+
+.countly-time-grid .countly-time-metric {
+  height: 60px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.countly-time-grid .countly-time-metric strong {
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.countly-time-grid .countly-time-metric span {
+  margin-top: 7px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 11px;
+  font-weight: 650;
 }
 
 .countly-time-divider {
   display: none;
 }
 
-.countly-row-action {
-  grid-area: action;
-  align-self: start;
-  justify-self: end;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  color: #cf3e5f;
-  background: #fff1f4;
+.countly-card-menu {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
 }
 
-.countly-row-action:hover {
-  background: #ffe5eb;
+.countly-card-menu-trigger {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 8px;
+  color: #ffffff;
+  background: rgba(12, 14, 20, 0.46);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+}
+
+span.countly-card-menu-trigger {
+  cursor: default;
+}
+
+.countly-card-menu-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  display: grid;
+  min-width: 132px;
+  padding: 6px;
+  border: 1px solid var(--countly-border);
+  border-radius: 8px;
+  background: var(--countly-card);
+  box-shadow: 0 16px 34px rgba(20, 24, 45, 0.18);
+}
+
+.countly-card-menu-popover button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--countly-text);
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: left;
+}
+
+.countly-card-menu-popover button:hover {
+  background: var(--countly-accent-soft);
 }
 
 .countly-calendar-item {
@@ -633,7 +822,7 @@ label {
   padding: 13px 18px;
   border: 1px solid var(--countly-border);
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--countly-card);
   box-shadow: var(--countly-subtle-shadow);
 }
 
@@ -685,7 +874,7 @@ label {
   border: 1px dashed #d7dbe6;
   border-radius: 10px;
   color: var(--countly-muted);
-  background: #ffffff;
+  background: var(--countly-card);
 }
 
 .countly-timezone-note {
@@ -694,7 +883,7 @@ label {
   justify-content: center;
   gap: 11px;
   margin-top: 27px;
-  color: #808799;
+  color: var(--countly-soft-muted);
   font-size: 14px;
 }
 
@@ -728,23 +917,22 @@ label {
   }
 
   .countly-creation-fields {
-    grid-template-columns: 262px minmax(0, 1fr);
+    grid-template-columns: minmax(230px, 280px) minmax(260px, 340px);
     grid-template-areas:
-      "image fields"
-      ". submit";
+      "preview fields"
+      "preview submit";
   }
 
   .countly-form-inputs {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .countly-countdown-card {
-    grid-template-columns: 160px minmax(0, 1fr) 34px;
-    padding: 12px 16px;
+    padding: 0;
   }
 
   .countly-countdown-image {
-    width: 160px;
+    width: 100%;
   }
 
   .countly-time-grid {
@@ -754,11 +942,11 @@ label {
 
 @media (max-width: 1100px) {
   .countly-countdown-card {
-    grid-template-columns: 150px minmax(0, 1fr) 34px;
+    padding: 0;
   }
 
   .countly-countdown-image {
-    width: 150px;
+    width: 100%;
   }
 
   .countly-time-grid {
@@ -802,9 +990,10 @@ label {
   .countly-creation-fields {
     grid-template-columns: 1fr;
     grid-template-areas:
-      "image"
+      "preview"
       "fields"
       "submit";
+    justify-items: center;
   }
 
   .countly-form-inputs {
@@ -827,14 +1016,12 @@ label {
   }
 
   .countly-countdown-card {
-    grid-template-columns: 96px 1fr 30px;
-    gap: 13px;
-    padding: 8px 12px 12px 8px;
+    padding: 0;
   }
 
   .countly-countdown-image {
-    width: 96px;
-    height: 82px;
+    width: 100%;
+    min-height: 0;
   }
 
   .countly-countdown-details h3 {

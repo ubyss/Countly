@@ -9,7 +9,11 @@ import {
   Clock3,
   Globe2,
   ImageUp,
+  MoreVertical,
+  Moon,
+  Pencil,
   Plus,
+  Sun,
   Trash2
 } from "lucide-react";
 import { ChangeEvent, ClipboardEvent, DragEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -69,8 +73,8 @@ function toDateInputValue(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function calculateRemainingTime(targetDate: string): RemainingTime {
-  const now = new Date();
+function calculateRemainingTime(targetDate: string, referenceDate: Date): RemainingTime {
+  const now = referenceDate;
   const target = new Date(`${targetDate}T23:59:59`);
   const distance = target.getTime() - now.getTime();
 
@@ -125,6 +129,9 @@ export default function CountlyApp() {
   const [imageMessage, setImageMessage] = useState("Clique, arraste ou cole uma imagem");
   const [storageLoaded, setStorageLoaded] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [editingCountdownId, setEditingCountdownId] = useState<string | null>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
 
   useEffect(() => {
@@ -207,21 +214,47 @@ export default function CountlyApp() {
       return;
     }
 
-    const newCountdown: CountlyCountdown = {
-      id: crypto.randomUUID(),
+    const savedCountdown: CountlyCountdown = {
+      id: editingCountdownId ?? crypto.randomUUID(),
       name: countdownForm.name.trim(),
       targetDate: countdownForm.targetDate,
       description: countdownForm.description.trim(),
       image: countdownForm.image
     };
 
-    setCountdowns((current) => [newCountdown, ...current]);
+    setCountdowns((current) => {
+      if (editingCountdownId) {
+        return current.map((countdown) => (countdown.id === editingCountdownId ? savedCountdown : countdown));
+      }
+
+      return [savedCountdown, ...current];
+    });
     setCountdownForm(initialFormState);
+    setEditingCountdownId(null);
     setImageMessage("Clique, arraste ou cole uma imagem");
   }
 
   function removeCountdown(id: string) {
     setCountdowns((current) => current.filter((countdown) => countdown.id !== id));
+    if (editingCountdownId === id) {
+      setEditingCountdownId(null);
+      setCountdownForm(initialFormState);
+      setImageMessage("Clique, arraste ou cole uma imagem");
+    }
+    setActiveMenuId(null);
+  }
+
+  function editCountdown(countdown: CountlyCountdown) {
+    setCountdownForm({
+      name: countdown.name,
+      targetDate: countdown.targetDate,
+      description: countdown.description,
+      image: countdown.image
+    });
+    setEditingCountdownId(countdown.id);
+    setImageMessage(countdown.image ? "Imagem adicionada" : "Clique, arraste ou cole uma imagem");
+    setActiveMenuId(null);
+    document.getElementById("new-countdown")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function selectCalendarDate(date: Date) {
@@ -240,8 +273,12 @@ export default function CountlyApp() {
     ];
   }, [visibleMonth]);
 
+  const previewRemainingTime = countdownForm.targetDate
+    ? calculateRemainingTime(countdownForm.targetDate, currentTime)
+    : { months: 0, days: 0, hours: 0, minutes: 0, expired: false };
+
   return (
-    <main className="countly-application-shell">
+    <main className="countly-application-shell" data-theme={theme}>
       <header className="countly-navigation-bar">
         <div className="countly-brand-lockup">
           <span className="countly-brand-mark" aria-hidden="true">
@@ -270,6 +307,15 @@ export default function CountlyApp() {
         </nav>
 
         <div className="countly-header-actions">
+          <button
+            className="countly-theme-toggle"
+            type="button"
+            onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
+            aria-label={theme === "light" ? "Ativar tema escuro" : "Ativar tema claro"}
+            title={theme === "light" ? "Ativar tema escuro" : "Ativar tema claro"}
+          >
+            {theme === "light" ? <Moon size={19} /> : <Sun size={19} />}
+          </button>
           <a className="countly-create-shortcut" href="#new-countdown">
             <Plus size={20} />
             Nova contagem
@@ -285,111 +331,126 @@ export default function CountlyApp() {
           </div>
 
           <div className="countly-creation-fields">
-            <div
-              className={`countly-image-uploader ${countdownForm.image ? "countly-image-uploader--filled" : ""}`}
-              style={countdownForm.image ? { backgroundImage: `url(${countdownForm.image})` } : undefined}
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={handleImageDrop}
-              onPaste={handleImagePaste}
-              role="button"
-              tabIndex={0}
-              aria-label="Adicionar imagem"
-            >
-              {countdownForm.image ? null : (
-                <>
-                  <ImageUp size={38} />
-                  <strong>Adicionar imagem</strong>
-                  <span>JPG, PNG ou WebP</span>
-                  <small>Máximo 5MB</small>
-                  <em>{imageMessage}</em>
-                </>
-              )}
-              <input ref={fileInputRef} accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} type="file" />
-            </div>
-
             <div className="countly-form-inputs">
-            <label className="countly-field-group countly-field-group--name">
-              <span>Nome</span>
-              <input
-                value={countdownForm.name}
-                onChange={(event) => updateFormField("name", event.target.value)}
-                placeholder="ex.: Meu aniversário"
-                required
-              />
-            </label>
+              <label className="countly-field-group countly-field-group--name">
+                <span>Nome</span>
+                <input
+                  value={countdownForm.name}
+                  onChange={(event) => updateFormField("name", event.target.value)}
+                  placeholder="ex.: Meu aniversário"
+                  required
+                />
+              </label>
 
-            <label className="countly-field-group countly-field-group--date">
-              <span>Data alvo</span>
-              <div className="countly-date-picker-shell" ref={datePickerRef}>
-                <button className="countly-date-input-wrapper" type="button" onClick={() => setDatePickerOpen((open) => !open)}>
-                  <Calendar size={18} />
-                  <span className={countdownForm.targetDate ? "countly-date-display" : "countly-date-display countly-date-display--empty"}>
-                    {countdownForm.targetDate ? formatDateLabel(countdownForm.targetDate) : "Selecionar data"}
-                  </span>
-                  <ChevronDown size={18} />
-                </button>
+              <label className="countly-field-group countly-field-group--date">
+                <span>Data alvo</span>
+                <div className="countly-date-picker-shell" ref={datePickerRef}>
+                  <button className="countly-date-input-wrapper" type="button" onClick={() => setDatePickerOpen((open) => !open)}>
+                    <Calendar size={18} />
+                    <span className={countdownForm.targetDate ? "countly-date-display" : "countly-date-display countly-date-display--empty"}>
+                      {countdownForm.targetDate ? formatDateLabel(countdownForm.targetDate) : "Selecionar data"}
+                    </span>
+                    <ChevronDown size={18} />
+                  </button>
 
-                {datePickerOpen ? (
-                  <div className="countly-calendar-popover" role="dialog" aria-label="Selecionar data">
-                    <div className="countly-calendar-popover-header">
-                      <button
-                        type="button"
-                        aria-label="Mes anterior"
-                        onClick={() => setVisibleMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1))}
-                      >
-                        <ChevronLeft size={17} />
-                      </button>
-                      <strong>{formatCalendarMonth(visibleMonth)}</strong>
-                      <button
-                        type="button"
-                        aria-label="Proximo mes"
-                        onClick={() => setVisibleMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1))}
-                      >
-                        <ChevronRight size={17} />
-                      </button>
+                  {datePickerOpen ? (
+                    <div className="countly-calendar-popover" role="dialog" aria-label="Selecionar data">
+                      <div className="countly-calendar-popover-header">
+                        <button
+                          type="button"
+                          aria-label="Mes anterior"
+                          onClick={() => setVisibleMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1))}
+                        >
+                          <ChevronLeft size={17} />
+                        </button>
+                        <strong>{formatCalendarMonth(visibleMonth)}</strong>
+                        <button
+                          type="button"
+                          aria-label="Proximo mes"
+                          onClick={() => setVisibleMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1))}
+                        >
+                          <ChevronRight size={17} />
+                        </button>
+                      </div>
+
+                      <div className="countly-calendar-weekdays">
+                        {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"].map((weekday) => (
+                          <span key={weekday}>{weekday}</span>
+                        ))}
+                      </div>
+
+                      <div className="countly-calendar-days">
+                        {calendarDays.map((date, index) =>
+                          date ? (
+                            <button
+                              className={countdownForm.targetDate === toDateInputValue(date) ? "countly-calendar-day countly-calendar-day--selected" : "countly-calendar-day"}
+                              key={toDateInputValue(date)}
+                              type="button"
+                              onClick={() => selectCalendarDate(date)}
+                            >
+                              {date.getDate()}
+                            </button>
+                          ) : (
+                            <span className="countly-calendar-day-placeholder" key={`empty-${index}`} />
+                          )
+                        )}
+                      </div>
                     </div>
-
-                    <div className="countly-calendar-weekdays">
-                      {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"].map((weekday) => (
-                        <span key={weekday}>{weekday}</span>
-                      ))}
-                    </div>
-
-                    <div className="countly-calendar-days">
-                      {calendarDays.map((date, index) =>
-                        date ? (
-                          <button
-                            className={countdownForm.targetDate === toDateInputValue(date) ? "countly-calendar-day countly-calendar-day--selected" : "countly-calendar-day"}
-                            key={toDateInputValue(date)}
-                            type="button"
-                            onClick={() => selectCalendarDate(date)}
-                          >
-                            {date.getDate()}
-                          </button>
-                        ) : (
-                          <span className="countly-calendar-day-placeholder" key={`empty-${index}`} />
-                        )
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </label>
-
-            <label className="countly-field-group countly-field-group--description">
-              <span>Descrição (opcional)</span>
-              <textarea
-                value={countdownForm.description}
-                onChange={(event) => updateFormField("description", event.target.value)}
-                placeholder="Adicione uma observação sobre esta contagem..."
-              />
-            </label>
+                  ) : null}
+                </div>
+              </label>
             </div>
+
+            <article className="countly-countdown-card countly-countdown-card--preview" aria-label="Pre-visualização do card">
+              <div
+                className={`countly-countdown-image ${countdownForm.image ? "" : "countly-countdown-image--empty"}`}
+                style={countdownForm.image ? { backgroundImage: `url(${countdownForm.image})` } : undefined}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={handleImageDrop}
+                onPaste={handleImagePaste}
+                role="button"
+                tabIndex={0}
+                aria-label="Adicionar imagem"
+              >
+                {countdownForm.image ? null : (
+                  <div className="countly-preview-upload-hint">
+                    <ImageUp size={28} />
+                    <strong>Adicionar imagem</strong>
+                    <span>Clique, arraste ou cole</span>
+                    <em>{imageMessage}</em>
+                  </div>
+                )}
+                <input ref={fileInputRef} accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} type="file" />
+                <div className="countly-card-menu" aria-hidden="true">
+                  <span className="countly-card-menu-trigger">
+                    <MoreVertical size={18} />
+                  </span>
+                </div>
+
+                <div className="countly-time-grid" aria-label="Tempo restante da pre-visualização">
+                  <CountdownMetric label="Meses" value={previewRemainingTime.months} />
+                  <CountdownMetric label="Dias" value={previewRemainingTime.days} />
+                  <CountdownMetric label="Horas" value={previewRemainingTime.hours} />
+                  <CountdownMetric label="Minutos" value={previewRemainingTime.minutes} />
+                </div>
+              </div>
+
+              <div className="countly-countdown-details">
+                <h3>{countdownForm.name.trim() || "Nome da contagem"}</h3>
+                <div className="countly-countdown-meta">
+                  <Calendar size={18} />
+                  {countdownForm.targetDate ? (
+                    <time dateTime={countdownForm.targetDate}>{formatDateLabel(countdownForm.targetDate)}</time>
+                  ) : (
+                    <span>Selecionar data</span>
+                  )}
+                </div>
+              </div>
+            </article>
 
             <button className="countly-submit-button" type="submit">
               <CalendarDays size={19} />
-              Adicionar contagem
+              {editingCountdownId ? "Salvar contagem" : "Adicionar contagem"}
             </button>
           </div>
         </form>
@@ -412,15 +473,45 @@ export default function CountlyApp() {
 
           <div className={activeView === "countdowns" ? "countly-countdown-stack" : "countly-calendar-stack"}>
             {visibleCountdowns.map((countdown) => {
-              const remainingTime = calculateRemainingTime(countdown.targetDate);
+              const remainingTime = calculateRemainingTime(countdown.targetDate, currentTime);
               return activeView === "countdowns" ? (
                 <article className="countly-countdown-card" key={countdown.id}>
                   <div
                     className={`countly-countdown-image ${countdown.image ? "" : "countly-countdown-image--empty"}`}
-                    aria-hidden="true"
                     style={countdown.image ? { backgroundImage: `url(${countdown.image})` } : undefined}
                   >
                     {countdown.image ? null : <CalendarDays size={28} />}
+                    <div className="countly-card-menu">
+                      <button
+                        className="countly-card-menu-trigger"
+                        type="button"
+                        onClick={() => setActiveMenuId((current) => (current === countdown.id ? null : countdown.id))}
+                        aria-expanded={activeMenuId === countdown.id}
+                        aria-label={`Abrir acoes para ${countdown.name}`}
+                      >
+                        <MoreVertical size={18} />
+                      </button>
+
+                      {activeMenuId === countdown.id ? (
+                        <div className="countly-card-menu-popover" role="menu">
+                          <button type="button" role="menuitem" onClick={() => editCountdown(countdown)}>
+                            <Pencil size={16} />
+                            Editar
+                          </button>
+                          <button type="button" role="menuitem" onClick={() => removeCountdown(countdown.id)}>
+                            <Trash2 size={16} />
+                            Excluir
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="countly-time-grid" aria-label={`Tempo restante para ${countdown.name}`}>
+                      <CountdownMetric label="Meses" value={remainingTime.months} />
+                      <CountdownMetric label="Dias" value={remainingTime.days} />
+                      <CountdownMetric label="Horas" value={remainingTime.hours} />
+                      <CountdownMetric label="Minutos" value={remainingTime.minutes} />
+                    </div>
                   </div>
 
                   <div className="countly-countdown-details">
@@ -429,27 +520,8 @@ export default function CountlyApp() {
                       <Calendar size={18} />
                       <time dateTime={countdown.targetDate}>{formatDateLabel(countdown.targetDate)}</time>
                     </div>
+                    {countdown.description ? <p>{countdown.description}</p> : null}
                   </div>
-
-                  <div className="countly-time-grid" aria-label={`Tempo restante para ${countdown.name}`}>
-                    <CountdownMetric label="Meses" value={remainingTime.months} />
-                    <span className="countly-time-divider">:</span>
-                    <CountdownMetric label="Dias" value={remainingTime.days} />
-                    <span className="countly-time-divider">:</span>
-                    <CountdownMetric label="Horas" value={remainingTime.hours} />
-                    <span className="countly-time-divider">:</span>
-                    <CountdownMetric label="Minutos" value={remainingTime.minutes} />
-                  </div>
-
-                  <button
-                    className="countly-row-action"
-                    onClick={() => removeCountdown(countdown.id)}
-                    aria-label={`Remover ${countdown.name}`}
-                    title={`Remover ${countdown.name}`}
-                    type="button"
-                  >
-                    <Trash2 size={19} />
-                  </button>
                 </article>
               ) : (
                 <article className="countly-calendar-item" key={countdown.id}>
