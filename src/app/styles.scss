@@ -16,6 +16,11 @@
   --countly-input-text: #202438;
   --countly-card: #ffffff;
   --countly-shell-bg: #ffffff;
+  --countly-success-icon: #16a34a;
+  --countly-success-surface: rgba(22, 163, 74, 0.2);
+  --countly-success-border: rgba(34, 197, 94, 0.45);
+  --countly-success-text: #f0fdf4;
+  --countly-success-label: #dcfce7;
 }
 
 * {
@@ -73,6 +78,11 @@ label {
   --countly-input-text: #f0f2f8;
   --countly-card: #171a23;
   --countly-shell-bg: #101218;
+  --countly-success-icon: #4ade80;
+  --countly-success-surface: rgba(34, 197, 94, 0.22);
+  --countly-success-border: rgba(74, 222, 128, 0.42);
+  --countly-success-text: #ecfdf5;
+  --countly-success-label: #bbf7d0;
   background:
     radial-gradient(circle at 50% 0%, rgba(141, 138, 255, 0.11), transparent 32rem),
     var(--countly-shell-bg);
@@ -185,12 +195,23 @@ label {
   border: 0;
   border-radius: 8px;
   color: #ffffff;
-  background: linear-gradient(180deg, #5752e6, #403bc7);
-  box-shadow: 0 10px 20px rgba(73, 73, 216, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  background: var(--countly-accent);
+  box-shadow: none;
   cursor: pointer;
   font-size: 15px;
   font-weight: 700;
   text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.countly-create-shortcut:hover,
+.countly-submit-button:hover {
+  background: var(--countly-accent-dark);
+}
+
+.countly-create-shortcut:active,
+.countly-submit-button:active {
+  background: #3533a8;
 }
 
 .countly-create-shortcut {
@@ -198,12 +219,105 @@ label {
 }
 
 .countly-workspace {
-  width: min(1428px, calc(100% - 128px));
+  width: min(1440px, calc(100% - 128px));
   margin: 28px auto 44px;
 }
 
+.countly-workspace--quad-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 250px);
+  gap: 18px;
+  align-items: start;
+  justify-content: start;
+}
+
+.countly-workspace--quad-grid .countly-creation-heading {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+.countly-workspace--quad-grid .countly-creation-heading h1,
+.countly-workspace--quad-grid .countly-creation-heading p {
+  max-width: calc(250px * 3 + 18px * 2);
+}
+
+.countly-workspace-hero-row {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 1440px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 250px);
+  gap: 18px;
+  align-items: start;
+  justify-content: start;
+}
+
+.countly-workspace-hero-row .countly-creation-panel {
+  grid-column: span 3;
+  width: 100%;
+  max-width: calc(250px * 3 + 18px * 2);
+}
+
+.countly-workspace-hero-aside {
+  display: flex;
+  min-width: 0;
+  grid-column: span 2;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.countly-workspace-hero-aside__title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.countly-workspace-hero-aside__title span {
+  display: inline-flex;
+  min-width: 24px;
+  height: 23px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  color: var(--countly-muted);
+  background: var(--countly-accent-soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.countly-workspace-hero-aside__cards {
+  display: grid;
+  grid-template-columns: repeat(2, 250px);
+  gap: 18px;
+  align-items: start;
+}
+
+.countly-workspace-hero-aside .countly-empty-state--workspace {
+  grid-column: 1 / -1;
+  min-height: 400px;
+}
+
+.countly-creation-stack {
+  display: block;
+  margin-bottom: 26px;
+}
+
+.countly-workspace--quad-grid .countly-timezone-note {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+
+.countly-creation-heading {
+  min-width: 0;
+}
+
 .countly-creation-panel {
-  padding: 28px 28px 28px;
+  min-width: 0;
+  padding: 20px 24px 24px;
   border: 1px solid var(--countly-border);
   border-radius: 10px;
   background: var(--countly-panel);
@@ -226,16 +340,16 @@ label {
 
 .countly-creation-fields {
   display: grid;
-  width: min(740px, 100%);
-  grid-template-columns: minmax(230px, 280px) minmax(260px, 340px);
+  width: 100%;
+  grid-template-columns: 250px minmax(0, 1fr);
   grid-template-areas:
     "preview fields"
     "preview submit";
-  column-gap: 34px;
-  row-gap: 20px;
-  align-items: center;
-  justify-content: center;
-  margin: 31px auto 0;
+  column-gap: 24px;
+  row-gap: 18px;
+  align-items: start;
+  justify-content: start;
+  margin: 0;
 }
 
 .countly-image-uploader {
@@ -327,7 +441,7 @@ label {
   font-weight: 600;
 }
 
-.countly-field-group input,
+.countly-field-group input:not(.countly-date-input-field),
 .countly-field-group textarea,
 .countly-field-group select,
 .countly-date-input-wrapper {
@@ -339,7 +453,7 @@ label {
   box-shadow: 0 1px 3px rgba(20, 24, 45, 0.05);
 }
 
-.countly-field-group input,
+.countly-field-group input:not(.countly-date-input-field),
 .countly-field-group select {
   height: 52px;
   padding: 0 16px;
@@ -367,25 +481,39 @@ label {
 
 .countly-date-input-wrapper {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 52px minmax(0, 1fr) 52px;
   align-items: center;
   height: 52px;
-  padding: 0 15px;
+  padding: 0;
   color: var(--countly-muted);
+}
+
+.countly-date-input-wrapper__calendar-trigger,
+.countly-date-input-wrapper__toggle {
+  display: inline-flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  color: var(--countly-muted);
+  background: transparent;
   cursor: pointer;
-  text-align: left;
 }
 
-.countly-date-display {
-  overflow: hidden;
-  padding: 0 14px;
+.countly-field-group .countly-date-input-field {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0 4px;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
   color: var(--countly-input-text);
+  background: transparent;
   font-size: 14px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
-.countly-date-display--empty {
+.countly-date-input-field::placeholder {
   color: var(--countly-soft-muted);
 }
 
@@ -404,10 +532,17 @@ label {
 
 .countly-calendar-popover-header {
   display: grid;
-  grid-template-columns: 34px 1fr 34px;
+  grid-template-columns: minmax(0, auto) 1fr 34px;
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+.countly-calendar-popover-header__start {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
 }
 
 .countly-calendar-popover-header strong {
@@ -435,10 +570,29 @@ label {
   background: var(--countly-accent-soft);
 }
 
-.countly-calendar-popover-header button:hover,
-.countly-calendar-day:hover {
+.countly-calendar-popover-header button:hover:not(:disabled),
+.countly-calendar-day:hover:not(:disabled) {
   background: var(--countly-accent-soft);
   color: var(--countly-accent);
+}
+
+.countly-calendar-nav-placeholder {
+  display: block;
+  width: 34px;
+  height: 34px;
+}
+
+.countly-calendar-popover-header__return-month {
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+}
+
+.countly-calendar-day--disabled {
+  opacity: 0.28;
+  color: var(--countly-soft-muted);
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .countly-calendar-weekdays,
@@ -560,11 +714,15 @@ label {
   gap: 10px;
 }
 
-.countly-countdown-card {
+.countly-countdown-card,
+.countly-countdown-card--preview {
   position: relative;
   display: flex;
-  min-width: 0;
-  aspect-ratio: 3 / 4;
+  width: 250px;
+  height: 400px;
+  min-width: 250px;
+  max-width: 250px;
+  flex: 0 0 auto;
   flex-direction: column;
   overflow: hidden;
   padding: 0;
@@ -576,13 +734,25 @@ label {
 
 .countly-countdown-card--preview {
   grid-area: preview;
-  align-self: center;
-  width: min(100%, 280px);
   box-shadow: none;
 }
 
-.countly-countdown-card--preview .countly-countdown-image {
-  min-height: 0;
+.countly-countdown-card--preview .countly-countdown-image input {
+  z-index: 2;
+}
+
+.countly-time-grid--preview {
+  z-index: 5;
+  pointer-events: none;
+}
+
+.countly-countdown-details--preview {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.countly-countdown-details--preview h3 {
+  margin: 0;
 }
 
 .countly-countdown-image {
@@ -593,7 +763,7 @@ label {
   min-height: 0;
   align-items: center;
   justify-content: center;
-  overflow: visible;
+  overflow: hidden;
   color: var(--countly-accent);
   background-position: center;
   background-size: cover;
@@ -610,9 +780,8 @@ label {
   background: linear-gradient(135deg, var(--countly-accent-soft), rgba(73, 73, 216, 0.05));
 }
 
-.countly-countdown-image--empty svg {
-  position: relative;
-  z-index: 1;
+.countly-countdown-image--empty > svg {
+  display: none;
 }
 
 .countly-countdown-image input {
@@ -651,19 +820,28 @@ label {
 
 .countly-countdown-details {
   position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   flex: 0 0 auto;
   min-width: 0;
-  min-height: 0;
-  margin: -10px 12px 12px;
-  padding: 11px 12px;
-  border: 1px solid var(--countly-border);
-  border-radius: 8px;
+  margin: 0;
+  padding: 10px 10px 10px 14px;
+  border-top: 1px solid var(--countly-border);
+  border-radius: 0;
   background: var(--countly-card);
-  box-shadow: 0 8px 18px rgba(20, 24, 45, 0.1);
+  box-shadow: none;
+}
+
+.countly-countdown-details__content {
+  flex: 1;
+  min-width: 0;
 }
 
 .countly-countdown-details h3 {
   margin: 0 0 6px;
+  padding-right: 4px;
   color: var(--countly-text);
   font-size: 14px;
   line-height: 1.2;
@@ -689,21 +867,67 @@ label {
   display: none;
 }
 
-.countly-time-grid {
+.countly-time-grid,
+.countly-countdown-completed {
   position: absolute;
-  right: 14px;
-  bottom: 24px;
-  left: 14px;
+  top: 50%;
+  left: 50%;
   z-index: 2;
+  width: min(calc(100% - 24px), 100%);
+  border-radius: 8px;
+  backdrop-filter: blur(14px);
+  transform: translate(-50%, -50%);
+}
+
+.countly-time-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: center;
-  gap: 8px;
-  padding: 10px;
+  gap: 6px;
+  padding: 8px;
   border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 8px;
   background: rgba(12, 14, 20, 0.62);
-  backdrop-filter: blur(14px);
+}
+
+.countly-countdown-completed {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--countly-success-border);
+  background: var(--countly-success-surface);
+  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.18);
+}
+
+.countly-countdown-completed__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--countly-success-icon);
+}
+
+.countly-countdown-completed__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.countly-countdown-completed__label {
+  color: var(--countly-success-label);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.countly-countdown-completed__date {
+  color: var(--countly-success-text);
+  font-size: 14px;
+  font-weight: 750;
 }
 
 .countly-time-metric {
@@ -733,7 +957,7 @@ label {
 }
 
 .countly-time-grid .countly-time-metric {
-  height: 60px;
+  height: 52px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.1);
@@ -741,13 +965,13 @@ label {
 
 .countly-time-grid .countly-time-metric strong {
   color: #ffffff;
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .countly-time-grid .countly-time-metric span {
-  margin-top: 7px;
+  margin-top: 5px;
   color: rgba(255, 255, 255, 0.78);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 650;
 }
 
@@ -762,6 +986,13 @@ label {
   z-index: 3;
 }
 
+.countly-card-menu--details {
+  position: relative;
+  top: auto;
+  right: auto;
+  flex-shrink: 0;
+}
+
 .countly-card-menu-trigger {
   display: inline-flex;
   width: 34px;
@@ -774,6 +1005,24 @@ label {
   background: rgba(12, 14, 20, 0.46);
   backdrop-filter: blur(12px);
   cursor: pointer;
+}
+
+.countly-card-menu--details .countly-card-menu-trigger {
+  border: 1px solid var(--countly-border);
+  color: var(--countly-muted);
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.countly-card-menu--details .countly-card-menu-trigger:hover {
+  color: var(--countly-text);
+  background: var(--countly-accent-soft);
+}
+
+.countly-card-menu--details .countly-card-menu-popover {
+  top: auto;
+  bottom: calc(100% + 8px);
+  z-index: 5;
 }
 
 span.countly-card-menu-trigger {
@@ -916,8 +1165,30 @@ span.countly-card-menu-trigger {
     width: min(100% - 40px, 1000px);
   }
 
+  .countly-workspace--quad-grid {
+    grid-template-columns: repeat(auto-fill, 250px);
+    justify-content: start;
+  }
+
+  .countly-workspace--quad-grid .countly-creation-heading,
+  .countly-workspace--quad-grid .countly-workspace-hero-row {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .countly-workspace-hero-row {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .countly-workspace-hero-row .countly-creation-panel,
+  .countly-workspace-hero-aside {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+
   .countly-creation-fields {
-    grid-template-columns: minmax(230px, 280px) minmax(260px, 340px);
+    grid-template-columns: 250px minmax(0, 1fr);
     grid-template-areas:
       "preview fields"
       "preview submit";
@@ -983,17 +1254,52 @@ span.countly-card-menu-trigger {
     margin-top: 18px;
   }
 
+  .countly-workspace--quad-grid {
+    grid-template-columns: repeat(auto-fill, 250px);
+    justify-content: center;
+  }
+
+  .countly-workspace--quad-grid .countly-creation-heading,
+  .countly-workspace--quad-grid .countly-workspace-hero-row {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .countly-workspace-hero-row {
+    grid-template-columns: repeat(auto-fill, 250px);
+    justify-content: center;
+  }
+
+  .countly-workspace-hero-row .countly-creation-panel,
+  .countly-workspace-hero-aside {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+
+  .countly-workspace-hero-aside__cards {
+    justify-content: center;
+  }
+
   .countly-creation-panel {
     padding: 22px 18px;
   }
 
   .countly-creation-fields {
-    grid-template-columns: 1fr;
+    width: 100%;
+    grid-template-columns: 250px;
     grid-template-areas:
       "preview"
       "fields"
       "submit";
     justify-items: center;
+  }
+
+  .countly-countdown-card,
+  .countly-countdown-card--preview {
+    width: 250px;
+    height: 400px;
+    min-width: 250px;
+    max-width: 250px;
   }
 
   .countly-form-inputs {
