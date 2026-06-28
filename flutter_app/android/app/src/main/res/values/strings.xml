@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="countly_widget_description">Próxima contagem regressiva do Countly</string>
+    <string name="countly_widget_image_description">Imagem do próximo evento</string>
+    <string name="countly_widget_empty_message">Adicione uma contagem no app</string>
+</resources>

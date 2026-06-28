@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="countly_widget_background">#FF171A23</color>
+    <color name="countly_widget_border">#FF2B3040</color>
+    <color name="countly_widget_text">#FFF4F6FB</color>
+    <color name="countly_widget_muted">#FFA2A9BA</color>
+    <color name="countly_widget_accent">#FF8D8AFF</color>
+    <color name="countly_widget_image_overlay">#99000000</color>
+    <color name="countly_flip_shell">#FF2B3040</color>
+    <color name="countly_flip_top">#FF232735</color>
+    <color name="countly_flip_top_text">#FF8D8AFF</color>
+    <color name="countly_flip_bottom">#FF171A23</color>
+    <color name="countly_flip_bottom_text">#FFA2A9BA</color>
+    <color name="countly_flip_hinge">#FF3A4052</color>
+    <color name="countly_flip_shadow">#66000000</color>
+</resources>

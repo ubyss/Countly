@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="countly_widget_background">#FFFFFFFF</color>
+    <color name="countly_widget_border">#FFE2E5ED</color>
+    <color name="countly_widget_text">#FF15182D</color>
+    <color name="countly_widget_muted">#FF6D7487</color>
+    <color name="countly_widget_accent">#FF4949D8</color>
+    <color name="countly_widget_image_overlay">#66000000</color>
+    <color name="countly_flip_shell">#FFD7DBE6</color>
+    <color name="countly_flip_top">#FF4949D8</color>
+    <color name="countly_flip_top_text">#FFFFFFFF</color>
+    <color name="countly_flip_bottom">#FFF0EFFF</color>
+    <color name="countly_flip_bottom_text">#FF4949D8</color>
+    <color name="countly_flip_hinge">#FF3C3AC2</color>
+    <color name="countly_flip_shadow">#1A15182D</color>
+</resources>
