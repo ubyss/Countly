@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../models/remaining_time.dart';
 import '../theme/countly_colors.dart';
@@ -31,6 +30,7 @@ class CountdownTimeOverlay extends StatelessWidget {
         date: formatBrazilianDateInput(targetDate),
         colors: colors,
         compact: compact,
+        onCard: onCard,
       );
     }
 
@@ -39,7 +39,7 @@ class CountdownTimeOverlay extends StatelessWidget {
         .toList();
 
     if (onCard) {
-      return _CardOverlay(metrics: metrics);
+      return _CardOverlay(metrics: metrics, colors: colors);
     }
 
     return _InlineOverlay(metrics: metrics, colors: colors, compact: compact);
@@ -54,32 +54,26 @@ class _Metric {
 }
 
 class _CardOverlay extends StatelessWidget {
-  const _CardOverlay({required this.metrics});
+  const _CardOverlay({
+    required this.metrics,
+    required this.colors,
+  });
 
   final List<_Metric> metrics;
+  final CountlyColors colors;
 
   @override
   Widget build(BuildContext context) {
-    return GlassContainer(
+    return Container(
       width: double.infinity,
-      useOwnLayer: true,
-      quality: GlassQuality.standard,
-      clipBehavior: Clip.antiAlias,
-      shape: const LiquidRoundedRectangle(borderRadius: 0),
       padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-      settings: const LiquidGlassSettings(
-        blur: 16,
-        thickness: 20,
-        saturation: 1.45,
-        lightIntensity: 0.55,
-        glassColor: Color.fromARGB(88, 255, 255, 255),
-      ),
+      color: colors.accent.withValues(alpha: 0.94),
       child: Row(
         children: [
           for (var index = 0; index < metrics.length; index++) ...[
             if (index > 0) const SizedBox(width: 6),
             Expanded(
-              child: _GlassMetric(
+              child: _OverlayMetric(
                 label: metrics[index].label,
                 value: metrics[index].value,
               ),
@@ -91,8 +85,8 @@ class _CardOverlay extends StatelessWidget {
   }
 }
 
-class _GlassMetric extends StatelessWidget {
-  const _GlassMetric({required this.label, required this.value});
+class _OverlayMetric extends StatelessWidget {
+  const _OverlayMetric({required this.label, required this.value});
 
   final String label;
   final int value;
@@ -103,8 +97,8 @@ class _GlassMetric extends StatelessWidget {
       height: 46,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: Colors.white.withValues(alpha: 0.12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+        color: Colors.black.withValues(alpha: 0.22),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -122,7 +116,7 @@ class _GlassMetric extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.78),
+              color: Colors.white.withValues(alpha: 0.82),
               fontSize: 10,
               fontWeight: FontWeight.w600,
             ),
@@ -226,26 +220,33 @@ class _CompletedBadge extends StatelessWidget {
     required this.date,
     required this.colors,
     required this.compact,
+    this.onCard = false,
   });
 
   final String date;
   final CountlyColors colors;
   final bool compact;
+  final bool onCard;
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: onCard ? double.infinity : null,
       padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 12, vertical: compact ? 8 : 10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: colors.successSurface,
-        border: Border.all(color: colors.successBorder),
+        borderRadius: onCard ? null : BorderRadius.circular(12),
+        color: onCard ? colors.accent.withValues(alpha: 0.94) : colors.successSurface,
+        border: onCard ? null : Border.all(color: colors.successBorder),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: onCard ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle_rounded, color: colors.successIcon, size: 18),
+          Icon(
+            Icons.check_circle_rounded,
+            color: onCard ? Colors.white : colors.successIcon,
+            size: 18,
+          ),
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +254,7 @@ class _CompletedBadge extends StatelessWidget {
               Text(
                 'Evento concluído em',
                 style: TextStyle(
-                  color: colors.successLabel,
+                  color: onCard ? Colors.white.withValues(alpha: 0.82) : colors.successLabel,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -261,7 +262,7 @@ class _CompletedBadge extends StatelessWidget {
               Text(
                 date,
                 style: TextStyle(
-                  color: colors.successText,
+                  color: onCard ? Colors.white : colors.successText,
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
                 ),

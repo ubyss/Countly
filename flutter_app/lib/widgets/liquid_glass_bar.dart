@@ -62,7 +62,7 @@ class _CountlyTabSwitcher extends StatefulWidget {
 
 class _CountlyTabSwitcherState extends State<_CountlyTabSwitcher>
     with SingleTickerProviderStateMixin {
-  static const _duration = Duration(milliseconds: 360);
+  static const _duration = Duration(milliseconds: 720);
 
   late final AnimationController _controller;
   late final Animation<double> _position;

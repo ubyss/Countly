@@ -15,15 +15,15 @@ class CountdownCard extends StatelessWidget {
     required this.countdown,
     required this.currentTime,
     required this.onEdit,
-    required this.onRemove,
     this.showShadow = true,
+    this.compactTitle = false,
   });
 
   final Countdown countdown;
   final ValueListenable<DateTime> currentTime;
   final VoidCallback onEdit;
-  final VoidCallback onRemove;
   final bool showShadow;
+  final bool compactTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class CountdownCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colors.border),
         color: colors.card,
         boxShadow: showShadow
@@ -50,7 +50,7 @@ class CountdownCard extends StatelessWidget {
         children: [
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(7)),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -59,6 +59,7 @@ class CountdownCard extends StatelessWidget {
                     colors: colors,
                     height: double.infinity,
                     borderRadius: 0,
+                    alignment: countdown.imageAlignment,
                   ),
                 Positioned(
                   left: 0,
@@ -78,10 +79,9 @@ class CountdownCard extends StatelessWidget {
                 Positioned(
                   top: 10,
                   right: 10,
-                  child: _CardMenu(
+                  child: _CardEditButton(
                     colors: colors,
                     onEdit: onEdit,
-                    onRemove: onRemove,
                   ),
                 ),
                 ],
@@ -99,7 +99,7 @@ class CountdownCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: colors.text,
-                    fontSize: 17,
+                    fontSize: compactTitle ? 14 : 17,
                     fontWeight: FontWeight.w800,
                     height: 1.2,
                   ),
@@ -125,7 +125,7 @@ class CountdownCard extends StatelessWidget {
                           Icon(Icons.repeat_rounded, size: 13, color: colors.accent),
                           const SizedBox(width: 4),
                           Text(
-                            countdown.repeat.label,
+                            countdown.repeat.displayLabel,
                             style: TextStyle(
                               color: colors.accent,
                               fontSize: 12,
@@ -146,70 +146,48 @@ class CountdownCard extends StatelessWidget {
   }
 }
 
-class _CardMenu extends StatelessWidget {
-  const _CardMenu({
+class _CardEditButton extends StatelessWidget {
+  const _CardEditButton({
     required this.colors,
     required this.onEdit,
-    required this.onRemove,
   });
 
   final CountlyColors colors;
   final VoidCallback onEdit;
-  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      padding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: colors.card,
-      offset: const Offset(0, 8),
-      onSelected: (value) {
-        switch (value) {
-          case 'edit':
-            onEdit();
-          case 'remove':
-            onRemove();
-        }
-      },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 'edit',
-          child: Row(
-            children: [
-              FaIcon(FontAwesomeIcons.penToSquare, size: 15, color: colors.text),
-              const SizedBox(width: 9),
-              const Text('Editar'),
+    return Material(
+      color: Colors.white,
+      shape: const CircleBorder(),
+      elevation: 0,
+      shadowColor: colors.text.withValues(alpha: 0.1),
+      child: InkWell(
+        onTap: onEdit,
+        customBorder: const CircleBorder(),
+        child: Ink(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            border: Border.all(color: colors.border),
+            boxShadow: [
+              BoxShadow(
+                color: colors.text.withValues(alpha: 0.1),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
             ],
           ),
-        ),
-        PopupMenuItem(
-          value: 'remove',
-          child: Row(
-            children: [
-              FaIcon(FontAwesomeIcons.trashCan, size: 15, color: const Color(0xFFDC4B4B)),
-              const SizedBox(width: 9),
-              const Text('Excluir'),
-            ],
-          ),
-        ),
-      ],
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
-          border: Border.all(color: colors.border),
-          boxShadow: [
-            BoxShadow(
-              color: colors.text.withValues(alpha: 0.1),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
+          child: Center(
+            child: FaIcon(
+              FontAwesomeIcons.penToSquare,
+              size: 15,
+              color: colors.muted,
             ),
-          ],
+          ),
         ),
-        child: Icon(Icons.more_vert_rounded, size: 18, color: colors.muted),
       ),
     );
   }

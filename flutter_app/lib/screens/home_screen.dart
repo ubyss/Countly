@@ -103,11 +103,13 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       currentTime: _currentTime,
       editing: editing,
+      onDelete: editing == null ? null : () => _removeCountdown(editing.id),
       onSubmit: ({
         required String name,
         required String targetDate,
         required CountlyRepeatMode repeat,
         String? imageBase64,
+        Alignment imageAlignment = Alignment.center,
       }) {
         final saved = Countdown(
           id: editing?.id ?? _uuid.v4(),
@@ -115,6 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
           targetDate: targetDate,
           repeat: repeat,
           imageBase64: imageBase64,
+          imageAlignment: imageAlignment,
         );
 
         setState(() {
@@ -158,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              colors.accent.withValues(alpha: widget.isDark ? 0.11 : 0.07),
+              colors.accent.withValues(alpha: widget.isDark ? 0.16 : 0.12),
               colors.page,
             ],
             stops: const [0, 0.42],
@@ -175,7 +178,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Expanded(
                 child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
+                  duration: const Duration(milliseconds: 400),
+                  reverseDuration: const Duration(milliseconds: 400),
+                  switchInCurve: Curves.easeInOut,
+                  switchOutCurve: Curves.easeInOut,
                   child: _activeTab == CountlyNavTab.countdowns
                       ? _CountdownsView(
                           key: const ValueKey('countdowns'),
@@ -188,7 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           viewMode: _viewMode,
                           onViewModeChanged: (value) => setState(() => _viewMode = value),
                           onEdit: (countdown) => _openCreation(editing: countdown),
-                          onRemove: _removeCountdown,
                         )
                       : _CalendarTabView(
                           key: const ValueKey('calendar'),
@@ -284,7 +289,6 @@ class _CountdownsView extends StatelessWidget {
     required this.viewMode,
     required this.onViewModeChanged,
     required this.onEdit,
-    required this.onRemove,
   });
 
   final CountlyColors colors;
@@ -296,14 +300,16 @@ class _CountdownsView extends StatelessWidget {
   final CountdownViewMode viewMode;
   final ValueChanged<CountdownViewMode> onViewModeChanged;
   final void Function(Countdown countdown) onEdit;
-  final void Function(String id) onRemove;
 
-  Widget _buildCard(Countdown countdown) {
+  Widget _buildCard(
+    Countdown countdown, {
+    bool compactTitle = false,
+  }) {
     return CountdownCard(
       countdown: countdown,
       currentTime: currentTime,
+      compactTitle: compactTitle,
       onEdit: () => onEdit(countdown),
-      onRemove: () => onRemove(countdown.id),
     );
   }
 
@@ -314,7 +320,6 @@ class _CountdownsView extends StatelessWidget {
           countdowns: countdowns,
           currentTime: currentTime,
           onEdit: onEdit,
-          onRemove: onRemove,
         );
       case CountdownViewMode.single:
         const targetCardHeight = 480.0;
@@ -331,7 +336,7 @@ class _CountdownsView extends StatelessWidget {
         );
       case CountdownViewMode.grid:
         const spacing = 12.0;
-        const targetCardHeight = 290.0;
+        const targetCardHeight = 320.0;
         const crossAxisCount = 2;
         final itemWidth = (maxWidth - spacing) / crossAxisCount;
         return GridView.builder(
@@ -344,70 +349,114 @@ class _CountdownsView extends StatelessWidget {
             childAspectRatio: itemWidth / targetCardHeight,
           ),
           itemCount: countdowns.length,
-          itemBuilder: (context, index) => _buildCard(countdowns[index]),
+          itemBuilder: (context, index) => _buildCard(
+            countdowns[index],
+            compactTitle: true,
+          ),
         );
     }
+  }
+
+  Widget _buildHeaderSection({
+    required Color titleColor,
+    required Color subtitleColor,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Suas contagens',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: titleColor,
+                  fontSize: 21,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            _CountBadge(count: countdowns.length, colors: colors, isDark: isDark),
+          ],
+        ),
+        if (countdowns.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _ViewModeSelector(
+                viewMode: viewMode,
+                colors: colors,
+                isDark: isDark,
+                onChanged: onViewModeChanged,
+              ),
+              const Spacer(),
+              if (countdowns.length > 1)
+                _SortToggleButton(
+                  sortMode: sortMode,
+                  colors: colors,
+                  isDark: isDark,
+                  onToggle: () => onSortChanged(sortMode == 'soonest' ? 'latest' : 'soonest'),
+                ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 9),
+        Text(
+          'Crie e acompanhe seus momentos importantes.',
+          style: TextStyle(color: subtitleColor, fontSize: 14),
+        ),
+      ],
+    );
+  }
+
+  double _carouselBottomReserve(BuildContext context) {
+    const barClearance = 56.0 + 24.0 + 16.0;
+    return barClearance + MediaQuery.paddingOf(context).bottom;
   }
 
   @override
   Widget build(BuildContext context) {
     final titleColor = isDark ? colors.text : Colors.white;
     final subtitleColor = isDark ? colors.muted : Colors.white.withValues(alpha: 0.78);
+    final header = _buildHeaderSection(
+      titleColor: titleColor,
+      subtitleColor: subtitleColor,
+    );
+
+    if (countdowns.isNotEmpty && viewMode == CountdownViewMode.carousel) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+            child: header,
+          ),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                24,
+                16,
+                24,
+                _carouselBottomReserve(context),
+              ),
+              child: _CountdownCarousel(
+                countdowns: countdowns,
+                currentTime: currentTime,
+                onEdit: onEdit,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     return CustomScrollView(
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-          sliver: SliverToBoxAdapter(
-            child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Suas contagens',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: titleColor,
-                        fontSize: 21,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  _CountBadge(count: countdowns.length, colors: colors, isDark: isDark),
-                ],
-              ),
-              if (countdowns.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _ViewModeSelector(
-                      viewMode: viewMode,
-                      colors: colors,
-                      isDark: isDark,
-                      onChanged: onViewModeChanged,
-                    ),
-                    const Spacer(),
-                    if (countdowns.length > 1)
-                      _SortToggleButton(
-                        sortMode: sortMode,
-                        colors: colors,
-                        isDark: isDark,
-                        onToggle: () => onSortChanged(sortMode == 'soonest' ? 'latest' : 'soonest'),
-                      ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: 9),
-              Text(
-                'Crie e acompanhe seus momentos importantes.',
-                style: TextStyle(color: subtitleColor, fontSize: 14),
-              ),
-            ],
-            ),
-          ),
+          sliver: SliverToBoxAdapter(child: header),
         ),
         if (countdowns.isEmpty)
           SliverFillRemaining(
@@ -444,12 +493,13 @@ class _CountdownsView extends StatelessWidget {
               ),
             ),
           ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
-          sliver: SliverToBoxAdapter(
-            child: _LocalTimezoneNote(colors: colors),
+        if (viewMode != CountdownViewMode.carousel)
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
+            sliver: SliverToBoxAdapter(
+              child: _LocalTimezoneNote(colors: colors),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -460,13 +510,11 @@ class _CountdownCarousel extends StatefulWidget {
     required this.countdowns,
     required this.currentTime,
     required this.onEdit,
-    required this.onRemove,
   });
 
   final List<Countdown> countdowns;
   final ValueListenable<DateTime> currentTime;
   final void Function(Countdown countdown) onEdit;
-  final void Function(String id) onRemove;
 
   @override
   State<_CountdownCarousel> createState() => _CountdownCarouselState();
@@ -489,27 +537,23 @@ class _CountdownCarouselState extends State<_CountdownCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 400,
-      child: PageView.builder(
-        controller: _pageController,
-        clipBehavior: Clip.hardEdge,
-        padEnds: false,
-        itemCount: widget.countdowns.length,
-        itemBuilder: (context, index) {
-          final countdown = widget.countdowns[index];
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: CountdownCard(
-              countdown: countdown,
-              currentTime: widget.currentTime,
-              showShadow: false,
-              onEdit: () => widget.onEdit(countdown),
-              onRemove: () => widget.onRemove(countdown.id),
-            ),
-          );
-        },
-      ),
+    return PageView.builder(
+      controller: _pageController,
+      clipBehavior: Clip.hardEdge,
+      padEnds: false,
+      itemCount: widget.countdowns.length,
+      itemBuilder: (context, index) {
+        final countdown = widget.countdowns[index];
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          child: CountdownCard(
+            countdown: countdown,
+            currentTime: widget.currentTime,
+            showShadow: false,
+            onEdit: () => widget.onEdit(countdown),
+          ),
+        );
+      },
     );
   }
 }

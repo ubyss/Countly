@@ -1,12 +1,11 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:pasteboard/pasteboard.dart';
 import '../models/countdown.dart';
 import '../models/repeat_mode.dart';
 import '../theme/countly_colors.dart';
+import '../utils/clipboard_image.dart';
+import '../utils/countdown_image_utils.dart';
 import '../utils/countdown_utils.dart';
 import 'countdown_image.dart';
 import 'countdown_time_overlay.dart';
@@ -20,9 +19,11 @@ class CreationSheet extends StatefulWidget {
     required this.initialTargetDate,
     required this.initialRepeat,
     required this.initialImageBase64,
+    required this.initialImageAlignment,
     required this.currentTime,
     required this.isEditing,
     required this.onSubmit,
+    this.onDelete,
     this.scrollController,
   });
 
@@ -30,14 +31,17 @@ class CreationSheet extends StatefulWidget {
   final String initialTargetDate;
   final CountlyRepeatMode initialRepeat;
   final String? initialImageBase64;
+  final Alignment initialImageAlignment;
   final ValueListenable<DateTime> currentTime;
   final bool isEditing;
   final ScrollController? scrollController;
+  final VoidCallback? onDelete;
   final void Function({
     required String name,
     required String targetDate,
     required CountlyRepeatMode repeat,
     String? imageBase64,
+    Alignment imageAlignment,
   }) onSubmit;
 
   @override
@@ -49,6 +53,8 @@ class _CreationSheetState extends State<CreationSheet> {
   late String _targetDate;
   late CountlyRepeatMode _repeat;
   String? _imageBase64;
+  Alignment _imageAlignment = Alignment.center;
+  bool _isPastingImage = false;
   final _imagePicker = ImagePicker();
 
   @override
@@ -58,6 +64,7 @@ class _CreationSheetState extends State<CreationSheet> {
     _targetDate = widget.initialTargetDate;
     _repeat = widget.initialRepeat;
     _imageBase64 = widget.initialImageBase64;
+    _imageAlignment = widget.initialImageAlignment;
   }
 
   @override
@@ -78,29 +85,71 @@ class _CreationSheetState extends State<CreationSheet> {
     }
 
     final bytes = await file.readAsBytes();
+    final encoded = await prepareCountdownImageBase64(bytes);
+    if (!mounted || encoded == null) {
+      return;
+    }
+
     setState(() {
-      _imageBase64 = base64Encode(bytes);
+      _imageBase64 = encoded;
+      _imageAlignment = Alignment.center;
     });
   }
 
   Future<void> _pasteImage() async {
-    final bytes = await Pasteboard.image;
-    if (!mounted) {
+    if (_isPastingImage) {
       return;
     }
 
-    if (bytes == null || bytes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Nenhuma imagem encontrada na área de transferência'),
-        ),
-      );
-      return;
-    }
+    setState(() => _isPastingImage = true);
+    await Future<void>.delayed(Duration.zero);
 
-    setState(() {
-      _imageBase64 = base64Encode(bytes);
-    });
+    try {
+      final bytes = await readClipboardImageBytes();
+      if (!mounted) {
+        return;
+      }
+
+      if (bytes == null || bytes.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Nenhuma imagem encontrada na área de transferência'),
+          ),
+        );
+        return;
+      }
+
+      final encoded = await prepareCountdownImageBase64(bytes);
+      if (!mounted) {
+        return;
+      }
+
+      if (encoded == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível usar esta imagem'),
+          ),
+        );
+        return;
+      }
+
+      setState(() {
+        _imageBase64 = encoded;
+        _imageAlignment = Alignment.center;
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível colar a imagem'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPastingImage = false);
+      }
+    }
   }
 
   void _submit() {
@@ -114,7 +163,55 @@ class _CreationSheetState extends State<CreationSheet> {
       targetDate: normalizeTargetDate(_targetDate),
       repeat: _repeat,
       imageBase64: _imageBase64,
+      imageAlignment: _imageAlignment,
     );
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _confirmDelete() async {
+    if (widget.onDelete == null) {
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final colors = dialogContext.countlyColors;
+        return AlertDialog(
+          backgroundColor: colors.card,
+          title: Text(
+            'Excluir contagem?',
+            style: TextStyle(color: colors.text, fontWeight: FontWeight.w800),
+          ),
+          content: Text(
+            'Tem certeza que deseja excluir esta contagem? Esta ação não pode ser desfeita.',
+            style: TextStyle(color: colors.muted, height: 1.45),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text('Cancelar', style: TextStyle(color: colors.muted)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text(
+                'Excluir',
+                style: TextStyle(
+                  color: Color(0xFFDC4B4B),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    widget.onDelete?.call();
     Navigator.of(context).pop();
   }
 
@@ -151,11 +248,14 @@ class _CreationSheetState extends State<CreationSheet> {
           const SizedBox(height: 12),
           _ImageUploader(
             imageBase64: _imageBase64,
+            imageAlignment: _imageAlignment,
             colors: colors,
             targetDate: _targetDate,
             currentTime: widget.currentTime,
             onPickImage: _pickImage,
             onPasteImage: _pasteImage,
+            onAlignmentChanged: (value) => setState(() => _imageAlignment = value),
+            isPastingImage: _isPastingImage,
           ),
           const SizedBox(height: 14),
           _FieldLabel('Nome', colors: colors),
@@ -197,6 +297,23 @@ class _CreationSheetState extends State<CreationSheet> {
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
             ),
           ),
+          if (widget.isEditing && widget.onDelete != null) ...[
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: _confirmDelete,
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(44),
+                foregroundColor: const Color(0xFFDC4B4B),
+                side: BorderSide(color: const Color(0xFFDC4B4B).withValues(alpha: 0.45)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.delete_outline_rounded, size: 18),
+              label: const Text(
+                'Excluir contagem',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -253,19 +370,25 @@ class _FieldLabel extends StatelessWidget {
 class _ImageUploader extends StatelessWidget {
   const _ImageUploader({
     required this.imageBase64,
+    required this.imageAlignment,
     required this.colors,
     required this.targetDate,
     required this.currentTime,
     required this.onPickImage,
     required this.onPasteImage,
+    required this.onAlignmentChanged,
+    required this.isPastingImage,
   });
 
   final String? imageBase64;
+  final Alignment imageAlignment;
   final CountlyColors colors;
   final String targetDate;
   final ValueListenable<DateTime> currentTime;
   final VoidCallback onPickImage;
   final VoidCallback onPasteImage;
+  final ValueChanged<Alignment> onAlignmentChanged;
+  final bool isPastingImage;
 
   @override
   Widget build(BuildContext context) {
@@ -330,8 +453,33 @@ class _ImageUploader extends StatelessWidget {
                     colors: colors,
                     height: 280,
                     borderRadius: 0,
+                    alignment: imageAlignment,
+                    panEnabled: true,
+                    onAlignmentChanged: onAlignmentChanged,
                   ),
           ),
+          if (imageBase64 != null)
+            Positioned(
+              left: 12,
+              bottom: 62,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Text(
+                    'Arraste para ajustar',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           Positioned(
             left: 0,
             right: 0,
@@ -352,7 +500,8 @@ class _ImageUploader extends StatelessWidget {
             right: 12,
             child: _PasteImageButton(
               colors: colors,
-              onTap: onPasteImage,
+              isLoading: isPastingImage,
+              onTap: isPastingImage ? null : onPasteImage,
             ),
           ),
         ],
@@ -364,11 +513,13 @@ class _ImageUploader extends StatelessWidget {
 class _PasteImageButton extends StatelessWidget {
   const _PasteImageButton({
     required this.colors,
+    required this.isLoading,
     required this.onTap,
   });
 
   final CountlyColors colors;
-  final VoidCallback onTap;
+  final bool isLoading;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -381,17 +532,27 @@ class _PasteImageButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.content_paste_rounded, color: colors.muted, size: 18),
-              const SizedBox(width: 6),
+              if (isLoading)
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colors.accent,
+                  ),
+                )
+              else
+                Icon(Icons.content_paste_rounded, color: colors.muted, size: 17),
+              const SizedBox(width: 5),
               Text(
-                'Colar',
+                'Colar da área de transferência',
                 style: TextStyle(
                   color: colors.text,
-                  fontSize: 13,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -407,11 +568,13 @@ Future<void> showCreationSheet({
   required BuildContext context,
   required ValueListenable<DateTime> currentTime,
   Countdown? editing,
+  VoidCallback? onDelete,
   required void Function({
     required String name,
     required String targetDate,
     required CountlyRepeatMode repeat,
     String? imageBase64,
+    Alignment imageAlignment,
   }) onSubmit,
 }) {
   final colors = context.countlyColors;
@@ -458,8 +621,10 @@ Future<void> showCreationSheet({
                     initialTargetDate: editing?.targetDate ?? '',
                     initialRepeat: editing?.repeat ?? CountlyRepeatMode.none,
                     initialImageBase64: editing?.imageBase64,
+                    initialImageAlignment: editing?.imageAlignment ?? Alignment.center,
                     currentTime: currentTime,
                     isEditing: editing != null,
+                    onDelete: onDelete,
                     onSubmit: onSubmit,
                   ),
                 ),

@@ -26,6 +26,9 @@ class CountdownImagePreview extends StatelessWidget {
     this.height = 160,
     this.borderRadius = 14,
     this.compact = false,
+    this.alignment = Alignment.center,
+    this.panEnabled = false,
+    this.onAlignmentChanged,
   });
 
   final String? imageBase64;
@@ -33,22 +36,20 @@ class CountdownImagePreview extends StatelessWidget {
   final double height;
   final double borderRadius;
   final bool compact;
+  final Alignment alignment;
+  final bool panEnabled;
+  final ValueChanged<Alignment>? onAlignmentChanged;
 
   @override
   Widget build(BuildContext context) {
     final imageBytes = decodeCountdownImage(imageBase64);
     final fillsAvailableSpace = !height.isFinite;
-    final imageContent = imageBytes != null
-        ? RepaintBoundary(
-            child: Image.memory(
-              imageBytes,
-              key: ValueKey<String>(imageBase64!),
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: fillsAvailableSpace ? double.infinity : height,
-              gaplessPlayback: true,
-              filterQuality: FilterQuality.medium,
-            ),
+
+    final Widget coreImage = imageBytes != null
+        ? _CoverImage(
+            bytes: imageBytes,
+            alignment: alignment,
+            cacheKey: imageBase64!,
           )
         : DecoratedBox(
             decoration: BoxDecoration(
@@ -70,6 +71,33 @@ class CountdownImagePreview extends StatelessWidget {
             ),
           );
 
+    Widget imageContent = coreImage;
+
+    if (panEnabled && imageBytes != null && onAlignmentChanged != null) {
+      imageContent = LayoutBuilder(
+        builder: (context, constraints) {
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onPanUpdate: (details) {
+              final width = constraints.maxWidth;
+              final heightValue = constraints.maxHeight;
+              if (width <= 0 || heightValue <= 0) {
+                return;
+              }
+
+              onAlignmentChanged!(
+                Alignment(
+                  (alignment.x - details.delta.dx / width * 2).clamp(-1.0, 1.0),
+                  (alignment.y - details.delta.dy / height * 2).clamp(-1.0, 1.0),
+                ),
+              );
+            },
+            child: coreImage,
+          );
+        },
+      );
+    }
+
     if (borderRadius <= 0) {
       if (fillsAvailableSpace) {
         return SizedBox.expand(child: imageContent);
@@ -90,6 +118,36 @@ class CountdownImagePreview extends StatelessWidget {
               width: double.infinity,
               child: imageContent,
             ),
+    );
+  }
+}
+
+class _CoverImage extends StatelessWidget {
+  const _CoverImage({
+    required this.bytes,
+    required this.alignment,
+    required this.cacheKey,
+  });
+
+  final Uint8List bytes;
+  final Alignment alignment;
+  final String cacheKey;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: ClipRect(
+        child: Image.memory(
+          bytes,
+          key: ValueKey<String>(cacheKey),
+          fit: BoxFit.cover,
+          alignment: alignment,
+          width: double.infinity,
+          height: double.infinity,
+          gaplessPlayback: true,
+          filterQuality: FilterQuality.medium,
+        ),
+      ),
     );
   }
 }
