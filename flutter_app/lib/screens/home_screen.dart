@@ -9,6 +9,7 @@ import '../models/countdown.dart';
 import '../models/repeat_mode.dart';
 import '../services/countdown_platform_sync.dart';
 import '../services/countdown_storage.dart';
+import '../services/countly_preferences.dart';
 import '../theme/countly_colors.dart';
 import '../utils/countdown_utils.dart';
 import '../widgets/countdown_card.dart';
@@ -34,6 +35,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _storage = CountdownStorage();
+  final _preferences = CountlyPreferences();
   final _uuid = const Uuid();
 
   List<Countdown> _countdowns = [];
@@ -58,15 +60,34 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadCountdowns() async {
-    final stored = await _storage.load();
+    final results = await Future.wait([
+      _storage.load(),
+      _preferences.loadViewMode(),
+    ]);
+    final stored = results[0] as List<Countdown>;
+    final savedViewMode = results[1] as String?;
     if (!mounted) {
       return;
     }
     setState(() {
       _countdowns = stored;
+      _viewMode = _parseViewMode(savedViewMode);
       _loaded = true;
     });
     await CountdownPlatformSync.sync(stored);
+  }
+
+  CountdownViewMode _parseViewMode(String? value) {
+    return switch (value) {
+      'single' => CountdownViewMode.single,
+      'grid' => CountdownViewMode.grid,
+      _ => CountdownViewMode.carousel,
+    };
+  }
+
+  void _setViewMode(CountdownViewMode value) {
+    setState(() => _viewMode = value);
+    _preferences.saveViewMode(value.name);
   }
 
   void _startClock() {
@@ -192,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           sortMode: _sortMode,
                           onSortChanged: (value) => setState(() => _sortMode = value),
                           viewMode: _viewMode,
-                          onViewModeChanged: (value) => setState(() => _viewMode = value),
+                          onViewModeChanged: _setViewMode,
                           onEdit: (countdown) => _openCreation(editing: countdown),
                         )
                       : _CalendarTabView(
