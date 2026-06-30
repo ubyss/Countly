@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fontresoft/fontresoft.dart';
 
 import 'countly_colors.dart';
+import 'countly_tokens.dart';
 
 class CountlyTheme {
   static ThemeData build({required bool isDark}) {
@@ -28,6 +29,21 @@ class CountlyTheme {
       ),
       dividerColor: colors.border,
       splashFactory: InkSparkle.splashFactory,
+      cardTheme: base.cardTheme.copyWith(
+        color: colors.card,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(CountlyRadius.md),
+          side: BorderSide(color: colors.border),
+        ),
+      ),
+      tooltipTheme: base.tooltipTheme.copyWith(
+        decoration: BoxDecoration(
+          color: colors.text,
+          borderRadius: BorderRadius.circular(CountlyRadius.sm),
+        ),
+        textStyle: TextStyle(color: colors.page, fontSize: 12),
+      ),
     );
   }
 }

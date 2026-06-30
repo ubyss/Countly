@@ -12,6 +12,10 @@ class CountlyColors {
     required this.accent,
     required this.accentDark,
     required this.accentSoft,
+    required this.accentGlow,
+    required this.accentGradientStart,
+    required this.accentGradientEnd,
+    required this.overlayScrim,
     required this.card,
     required this.input,
     required this.inputText,
@@ -35,6 +39,18 @@ class CountlyColors {
   final Color accent;
   final Color accentDark;
   final Color accentSoft;
+
+  /// Tom usado em glows/sombras coloridas (botões, indicadores, splash).
+  final Color accentGlow;
+
+  /// Extremos do gradiente de destaque, usados de forma consistente em
+  /// cabeçalhos, splash e elementos decorativos com gradiente roxo.
+  final Color accentGradientStart;
+  final Color accentGradientEnd;
+
+  /// Camada de escurecimento usada sobre imagens/fundos (ex.: splash).
+  final Color overlayScrim;
+
   final Color card;
   final Color input;
   final Color inputText;
@@ -48,16 +64,20 @@ class CountlyColors {
   final Color glassFill;
 
   static const light = CountlyColors._(
-    page: Color(0xFFFFFFFF),
+    page: Color(0xFFFCFCFF),
     text: Color(0xFF15182D),
     muted: Color(0xFF6D7487),
     softMuted: Color(0xFF8B91A3),
-    border: Color(0xFFE2E5ED),
+    border: Color(0xFFE6E8F0),
     borderStrong: Color(0xFFD7DBE6),
     panel: Color(0xFFFFFFFF),
     accent: Color(0xFF4949D8),
     accentDark: Color(0xFF3C3AC2),
     accentSoft: Color(0xFFF0EFFF),
+    accentGlow: Color(0xFF6E6BF0),
+    accentGradientStart: Color(0xFF5E5BE8),
+    accentGradientEnd: Color(0xFF4949D8),
+    overlayScrim: Color(0x661A1430),
     card: Color(0xFFFFFFFF),
     input: Color(0xFFFFFFFF),
     inputText: Color(0xFF202438),
@@ -72,7 +92,7 @@ class CountlyColors {
   );
 
   static const dark = CountlyColors._(
-    page: Color(0xFF101218),
+    page: Color(0xFF0E1016),
     text: Color(0xFFF4F6FB),
     muted: Color(0xFFA2A9BA),
     softMuted: Color(0xFF858DA0),
@@ -82,6 +102,10 @@ class CountlyColors {
     accent: Color(0xFF8D8AFF),
     accentDark: Color(0xFFA5A2FF),
     accentSoft: Color(0x248D8AFF),
+    accentGlow: Color(0xFFA09DFF),
+    accentGradientStart: Color(0xFF8D8AFF),
+    accentGradientEnd: Color(0xFF6E6BF0),
+    overlayScrim: Color(0x8A0B0D14),
     card: Color(0xFF171A23),
     input: Color(0xFF11141C),
     inputText: Color(0xFFF0F2F8),

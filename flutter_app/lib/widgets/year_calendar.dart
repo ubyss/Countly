@@ -4,9 +4,12 @@ import 'package:intl/intl.dart';
 
 import '../models/countdown.dart';
 import '../theme/countly_colors.dart';
+import '../theme/countly_motion.dart';
 import '../utils/countdown_utils.dart';
 import 'countdown_image.dart';
 import 'countdown_time_overlay.dart';
+import 'pressable.dart';
+import 'staggered_fade_in.dart';
 
 class YearCalendarView extends StatelessWidget {
   const YearCalendarView({
@@ -66,41 +69,43 @@ class YearCalendarView extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetContext) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          child: Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.78,
-            ),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colors.card,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: colors.border),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 14),
-                  decoration: BoxDecoration(
-                    color: colors.border,
-                    borderRadius: BorderRadius.circular(2),
+        return _SheetFadeIn(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.78,
+              ),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colors.card,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: colors.border),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: colors.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
-                SizedBox(
-                  height: 360,
-                  child: _FullMonthCard(
-                    monthDate: monthDate,
-                    days: days,
-                    countdownsByDate: countdownsByDate,
-                    colors: colors,
-                    currentTime: currentTime,
+                  SizedBox(
+                    height: 360,
+                    child: _FullMonthCard(
+                      monthDate: monthDate,
+                      days: days,
+                      countdownsByDate: countdownsByDate,
+                      colors: colors,
+                      currentTime: currentTime,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -188,63 +193,62 @@ class _MonthThumbnail extends StatelessWidget {
     final monthLabel = DateFormat('MMM', 'pt_BR').format(monthDate);
     final labelColor = isPastMonth ? colors.softMuted : colors.text;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
+    final content = Container(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isCurrentMonth
-                  ? colors.accent.withValues(alpha: 0.55)
-                  : colors.border.withValues(alpha: isPastMonth ? 0.65 : 0.9),
-              width: isCurrentMonth ? 1.4 : 1,
+        border: Border.all(
+          color: isCurrentMonth
+              ? colors.accent.withValues(alpha: 0.55)
+              : colors.border.withValues(alpha: isPastMonth ? 0.65 : 0.9),
+          width: isCurrentMonth ? 1.4 : 1,
+        ),
+        color: isPastMonth
+            ? colors.card.withValues(alpha: 0.55)
+            : colors.card,
+      ),
+      child: Stack(
+        children: [
+          Center(
+            child: Text(
+              monthLabel,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: labelColor,
+                fontSize: 12,
+                fontWeight: isCurrentMonth ? FontWeight.w800 : FontWeight.w700,
+              ),
             ),
-            color: isPastMonth
-                ? colors.card.withValues(alpha: 0.55)
-                : colors.card,
           ),
-          child: Stack(
-            children: [
-              Center(
-                child: Text(
-                  monthLabel,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: labelColor,
-                    fontSize: 12,
-                    fontWeight: isCurrentMonth ? FontWeight.w800 : FontWeight.w700,
+          if (hasCountdowns)
+            Positioned(
+              top: 7,
+              right: 7,
+              child: Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [colors.accent, colors.accentDark],
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colors.accent.withValues(alpha: 0.35),
+                      blurRadius: 6,
+                    ),
+                  ],
                 ),
               ),
-              if (hasCountdowns)
-                Positioned(
-                  top: 7,
-                  right: 7,
-                  child: Container(
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [colors.accent, colors.accentDark],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: colors.accent.withValues(alpha: 0.35),
-                          blurRadius: 6,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
+
+    if (onTap == null) {
+      return content;
+    }
+
+    return Pressable(onTap: onTap, scaleDown: 0.94, child: content);
   }
 }
 
@@ -391,8 +395,9 @@ class _YearDayCell extends StatelessWidget {
       return child;
     }
 
-    return GestureDetector(
+    return Pressable(
       onTap: () => _showDayDetails(context),
+      scaleDown: 0.92,
       child: child,
     );
   }
@@ -403,83 +408,106 @@ class _YearDayCell extends StatelessWidget {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colors.card,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: colors.border),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final countdown in countdowns) ...[
-                  Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 10),
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: colors.border),
-                      color: Color.alphaBlend(colors.accentSoft, colors.card),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        CountdownImagePreview(
-                          imageBase64: countdown.imageBase64,
-                          colors: colors,
-                          height: 140,
+        return _SheetFadeIn(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colors.card,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: colors.border),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var index = 0; index < countdowns.length; index++)
+                    StaggeredFadeIn(
+                      index: index,
+                      child: Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 10),
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: colors.border),
+                          color: Color.alphaBlend(colors.accentSoft, colors.card),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ValueListenableBuilder<DateTime>(
-                                valueListenable: currentTime,
-                                builder: (context, time, _) {
-                                  return CountdownTimeOverlay(
-                                    targetDate: countdown.targetDate,
-                                    currentTime: time,
-                                    compact: true,
-                                  );
-                                },
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                countdown.name,
-                                style: TextStyle(
-                                  color: colors.text,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            CountdownImagePreview(
+                              imageBase64: countdowns[index].imageBase64,
+                              colors: colors,
+                              height: 140,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.calendar_today_rounded, size: 14, color: colors.muted),
-                                  const SizedBox(width: 6),
+                                  ValueListenableBuilder<DateTime>(
+                                    valueListenable: currentTime,
+                                    builder: (context, time, _) {
+                                      return CountdownTimeOverlay(
+                                        targetDate: countdowns[index].targetDate,
+                                        currentTime: time,
+                                        compact: true,
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 12),
                                   Text(
-                                    formatDateLabel(countdown.targetDate),
-                                    style: TextStyle(color: colors.muted, fontSize: 12),
+                                    countdowns[index].name,
+                                    style: TextStyle(
+                                      color: colors.text,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.calendar_today_rounded, size: 14, color: colors.muted),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        formatDateLabel(countdowns[index].targetDate),
+                                        style: TextStyle(color: colors.muted, fontSize: 12),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
                 ],
-              ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+/// Faz o conteúdo de um bottom sheet surgir com um fade suave em vez
+/// de aparecer abruptamente junto com a animação padrão da sheet.
+class _SheetFadeIn extends StatelessWidget {
+  const _SheetFadeIn({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: CountlyMotion.base,
+      curve: CountlyMotion.standard,
+      builder: (context, value, child) => Opacity(opacity: value, child: child),
+      child: child,
     );
   }
 }

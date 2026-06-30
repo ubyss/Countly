@@ -4,12 +4,14 @@ import 'package:image_picker/image_picker.dart';
 import '../models/countdown.dart';
 import '../models/repeat_mode.dart';
 import '../theme/countly_colors.dart';
+import '../theme/countly_tokens.dart';
 import '../utils/clipboard_image.dart';
 import '../utils/countdown_image_utils.dart';
 import '../utils/countdown_utils.dart';
 import 'countdown_image.dart';
 import 'countdown_time_overlay.dart';
 import 'countly_date_picker.dart';
+import 'pressable.dart';
 import 'repeat_toggle.dart';
 
 class CreationSheet extends StatefulWidget {
@@ -273,6 +275,7 @@ class _CreationSheetState extends State<CreationSheet> {
             currentTime: widget.currentTime.value,
             onChanged: (value) => setState(() => _targetDate = value),
             compact: true,
+            opensAbove: true,
           ),
           const SizedBox(height: 10),
           _FieldLabel('Repetir', colors: colors),
@@ -282,35 +285,41 @@ class _CreationSheetState extends State<CreationSheet> {
             onChanged: (value) => setState(() => _repeat = value),
             compact: true,
           ),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: _submit,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(44),
-              backgroundColor: colors.accent,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            icon: const Icon(Icons.event_available_rounded, size: 18),
-            label: Text(
-              widget.isEditing ? 'Salvar' : 'Adicionar',
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+          const SizedBox(height: CountlySpacing.lg),
+          Pressable(
+            scaleDown: 0.98,
+            child: FilledButton.icon(
+              onPressed: _submit,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(44),
+                backgroundColor: colors.accent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(CountlyRadius.md)),
+              ),
+              icon: const Icon(Icons.event_available_rounded, size: 18),
+              label: Text(
+                widget.isEditing ? 'Salvar' : 'Adicionar',
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
             ),
           ),
           if (widget.isEditing && widget.onDelete != null) ...[
-            const SizedBox(height: 10),
-            OutlinedButton.icon(
-              onPressed: _confirmDelete,
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(44),
-                foregroundColor: const Color(0xFFDC4B4B),
-                side: BorderSide(color: const Color(0xFFDC4B4B).withValues(alpha: 0.45)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              icon: const Icon(Icons.delete_outline_rounded, size: 18),
-              label: const Text(
-                'Excluir contagem',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            const SizedBox(height: CountlySpacing.sm + 2),
+            Pressable(
+              scaleDown: 0.98,
+              child: OutlinedButton.icon(
+                onPressed: _confirmDelete,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(44),
+                  foregroundColor: const Color(0xFFDC4B4B),
+                  side: BorderSide(color: const Color(0xFFDC4B4B).withValues(alpha: 0.45)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(CountlyRadius.md)),
+                ),
+                icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                label: const Text(
+                  'Excluir contagem',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                ),
               ),
             ),
           ],
@@ -333,15 +342,15 @@ class _CreationSheetState extends State<CreationSheet> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       isDense: true,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(CountlyRadius.md),
         borderSide: BorderSide(color: colors.borderStrong.withValues(alpha: 0.8)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(CountlyRadius.md),
         borderSide: BorderSide(color: colors.borderStrong.withValues(alpha: 0.8)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(CountlyRadius.md),
         borderSide: BorderSide(color: colors.accent, width: 1.4),
       ),
     );
@@ -393,7 +402,7 @@ class _ImageUploader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(CountlyRadius.lg),
       child: Stack(
         children: [
           SizedBox(
@@ -523,40 +532,43 @@ class _PasteImageButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.94),
-      borderRadius: BorderRadius.circular(20),
-      elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.12),
-      child: InkWell(
-        onTap: onTap,
+    return Pressable(
+      scaleDown: 0.95,
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isLoading)
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: colors.accent,
+        elevation: 2,
+        shadowColor: Colors.black.withValues(alpha: 0.12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isLoading)
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colors.accent,
+                    ),
+                  )
+                else
+                  Icon(Icons.content_paste_rounded, color: colors.muted, size: 17),
+                const SizedBox(width: 5),
+                Text(
+                  'Colar da área de transferência',
+                  style: TextStyle(
+                    color: colors.text,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
-                )
-              else
-                Icon(Icons.content_paste_rounded, color: colors.muted, size: 17),
-              const SizedBox(width: 5),
-              Text(
-                'Colar da área de transferência',
-                style: TextStyle(
-                  color: colors.text,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -593,7 +605,7 @@ Future<void> showCreationSheet({
           return DecoratedBox(
             decoration: BoxDecoration(
               color: colors.card,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(CountlyRadius.lg)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.14),

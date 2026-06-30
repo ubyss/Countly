@@ -2,7 +2,32 @@ import 'package:flutter/material.dart';
 
 import '../models/remaining_time.dart';
 import '../theme/countly_colors.dart';
+import '../theme/countly_motion.dart';
 import '../utils/countdown_utils.dart';
+
+Widget _animatedMetricValue(String value, TextStyle style) {
+  return ClipRect(
+    child: AnimatedSwitcher(
+      duration: CountlyMotion.base,
+      switchInCurve: CountlyMotion.standard,
+      switchOutCurve: CountlyMotion.standard,
+      transitionBuilder: (child, animation) {
+        final slide = Tween<Offset>(begin: const Offset(0, 0.4), end: Offset.zero).animate(animation);
+        return ClipRect(
+          child: SlideTransition(
+            position: slide,
+            child: FadeTransition(opacity: animation, child: child),
+          ),
+        );
+      },
+      child: Text(
+        value,
+        key: ValueKey(value),
+        style: style,
+      ),
+    ),
+  );
+}
 
 class CountdownTimeOverlay extends StatelessWidget {
   const CountdownTimeOverlay({
@@ -103,9 +128,9 @@ class _OverlayMetric extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
+          _animatedMetricValue(
             padMetric(value),
-            style: const TextStyle(
+            const TextStyle(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.w800,
@@ -191,9 +216,9 @@ class _SolidMetric extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
+          _animatedMetricValue(
             padMetric(value),
-            style: TextStyle(
+            TextStyle(
               color: colors.accent,
               fontSize: compact ? 17 : 20,
               fontWeight: FontWeight.w800,

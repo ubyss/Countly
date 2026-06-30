@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:home_widget/home_widget.dart';
-import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/countdown.dart';
@@ -53,14 +52,11 @@ class HomeWidgetService {
     await HomeWidget.saveWidgetData<String>('widget_primary_label', '');
     await HomeWidget.saveWidgetData<String>('widget_secondary_value', '');
     await HomeWidget.saveWidgetData<String>('widget_secondary_label', '');
-    await HomeWidget.saveWidgetData<String>('widget_target_day', '');
-    await HomeWidget.saveWidgetData<String>('widget_target_month', '');
   }
 
   Future<void> _saveCountdownState(Countdown countdown, DateTime now) async {
     final remaining = calculateRemainingTime(countdown.targetDate, now);
     final units = remaining.expired ? <CountdownDisplayUnit>[] : buildCountdownDisplayUnits(remaining);
-    final targetDate = isoDateToLocalDate(normalizeTargetDate(countdown.targetDate));
     final imagePath = await _saveWidgetImage(countdown.imageBase64, countdown.id);
 
     await HomeWidget.saveWidgetData<bool>('widget_empty', false);
@@ -92,20 +88,6 @@ class HomeWidgetService {
         await HomeWidget.saveWidgetData<String>('widget_secondary_value', '');
         await HomeWidget.saveWidgetData<String>('widget_secondary_label', '');
       }
-    }
-
-    if (targetDate != null) {
-      await HomeWidget.saveWidgetData<String>(
-        'widget_target_day',
-        targetDate.day.toString().padLeft(2, '0'),
-      );
-      await HomeWidget.saveWidgetData<String>(
-        'widget_target_month',
-        DateFormat('MMM', 'pt_BR').format(targetDate).replaceAll('.', '').toUpperCase(),
-      );
-    } else {
-      await HomeWidget.saveWidgetData<String>('widget_target_day', '--');
-      await HomeWidget.saveWidgetData<String>('widget_target_month', '---');
     }
   }
 

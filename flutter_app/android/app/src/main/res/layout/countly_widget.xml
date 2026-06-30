@@ -4,11 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/countly_widget_background"
-    android:orientation="vertical">
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="10dp">
 
     <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="112dp">
+        android:layout_width="72dp"
+        android:layout_height="80dp">
 
         <ImageView
             android:id="@+id/widget_image"
@@ -18,74 +20,26 @@
             android:scaleType="centerCrop"
             android:visibility="gone" />
 
-        <View
+        <FrameLayout
             android:id="@+id/widget_image_placeholder"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/countly_flip_shell"
+            android:background="@drawable/countly_widget_image_placeholder"
             android:visibility="visible" />
 
-        <View
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/countly_widget_image_overlay" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|start"
-            android:layout_margin="12dp"
-            android:background="@drawable/countly_widget_date_badge"
-            android:gravity="center"
-            android:minWidth="52dp"
-            android:orientation="vertical"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="6dp">
-
-            <TextView
-                android:id="@+id/widget_target_day"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:text="00"
-                android:textColor="#FFFFFFFF"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/widget_target_month"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:includeFontPadding="false"
-                android:letterSpacing="0.08"
-                android:text="JAN"
-                android:textAllCaps="true"
-                android:textColor="#CCFFFFFF"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/widget_brand"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|end"
-            android:layout_margin="12dp"
-            android:letterSpacing="0.08"
-            android:text="COUNTLY"
-            android:textAllCaps="true"
-            android:textColor="#CCFFFFFF"
-            android:textSize="10sp"
-            android:textStyle="bold" />
+            android:background="@drawable/countly_widget_image_frame" />
     </FrameLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="14dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="14dp">
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/widget_title"
@@ -95,122 +49,107 @@
             android:maxLines="1"
             android:text="Próximo evento"
             android:textColor="@color/countly_widget_text"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold" />
-
-        <LinearLayout
-            android:id="@+id/widget_flip_row"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:baselineAligned="false"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/countly_flip_shell"
-                android:orientation="vertical"
-                android:padding="2dp">
-
-                <TextView
-                    android:id="@+id/widget_primary_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:background="@drawable/countly_flip_top"
-                    android:fontFamily="monospace"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:text="00"
-                    android:textColor="@color/countly_flip_top_text"
-                    android:textSize="28sp"
-                    android:textStyle="bold" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="2dp"
-                    android:background="@color/countly_flip_hinge" />
-
-                <TextView
-                    android:id="@+id/widget_primary_label"
-                    android:layout_width="match_parent"
-                    android:layout_height="28dp"
-                    android:background="@drawable/countly_flip_bottom"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:letterSpacing="0.12"
-                    android:text="DIAS"
-                    android:textAllCaps="true"
-                    android:textColor="@color/countly_flip_bottom_text"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/widget_secondary_flip"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/countly_flip_shell"
-                android:orientation="vertical"
-                android:padding="2dp">
-
-                <TextView
-                    android:id="@+id/widget_secondary_value"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:background="@drawable/countly_flip_top"
-                    android:fontFamily="monospace"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:text="00"
-                    android:textColor="@color/countly_flip_top_text"
-                    android:textSize="28sp"
-                    android:textStyle="bold" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="2dp"
-                    android:background="@color/countly_flip_hinge" />
-
-                <TextView
-                    android:id="@+id/widget_secondary_label"
-                    android:layout_width="match_parent"
-                    android:layout_height="28dp"
-                    android:background="@drawable/countly_flip_bottom"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:letterSpacing="0.12"
-                    android:text="HORAS"
-                    android:textAllCaps="true"
-                    android:textColor="@color/countly_flip_bottom_text"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </LinearLayout>
 
         <TextView
             android:id="@+id/widget_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="2dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/countly_widget_muted"
-            android:textSize="12sp"
+            android:textSize="11sp"
             android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/widget_metrics_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/countly_widget_metric_bg"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="5dp">
+
+                <TextView
+                    android:id="@+id/widget_primary_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:includeFontPadding="false"
+                    android:text="00"
+                    android:textColor="@color/countly_widget_accent"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_primary_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:letterSpacing="0.06"
+                    android:text="DIAS"
+                    android:textAllCaps="true"
+                    android:textColor="@color/countly_widget_muted"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_secondary_metric"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/countly_widget_metric_bg"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="5dp">
+
+                <TextView
+                    android:id="@+id/widget_secondary_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:includeFontPadding="false"
+                    android:text="00"
+                    android:textColor="@color/countly_widget_accent"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_secondary_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:letterSpacing="0.06"
+                    android:text="HORAS"
+                    android:textAllCaps="true"
+                    android:textColor="@color/countly_widget_muted"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/widget_empty_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:text="@string/countly_widget_empty_message"
             android:textColor="@color/countly_widget_muted"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:visibility="gone" />
     </LinearLayout>
 </LinearLayout>

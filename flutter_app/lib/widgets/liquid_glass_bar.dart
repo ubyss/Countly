@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../theme/countly_colors.dart';
+import '../theme/countly_motion.dart';
 
 enum CountlyNavTab { countdowns, calendar }
 
@@ -62,7 +63,7 @@ class _CountlyTabSwitcher extends StatefulWidget {
 
 class _CountlyTabSwitcherState extends State<_CountlyTabSwitcher>
     with SingleTickerProviderStateMixin {
-  static const _duration = Duration(milliseconds: 720);
+  static const _duration = Duration(milliseconds: 560);
 
   late final AnimationController _controller;
   late final Animation<double> _position;
@@ -73,7 +74,7 @@ class _CountlyTabSwitcherState extends State<_CountlyTabSwitcher>
     _controller = AnimationController(vsync: this, duration: _duration);
     _position = CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInOutCubicEmphasized,
+      curve: CountlyMotion.playful,
     );
     _controller.value = widget.activeTab.index.toDouble();
   }
@@ -85,7 +86,7 @@ class _CountlyTabSwitcherState extends State<_CountlyTabSwitcher>
       _controller.animateTo(
         widget.activeTab.index.toDouble(),
         duration: _duration,
-        curve: Curves.easeInOutCubicEmphasized,
+        curve: CountlyMotion.playful,
       );
     }
   }
@@ -208,6 +209,7 @@ class _CountlyNavTabButton extends StatelessWidget {
     final selectedColor = isDark ? Colors.white : colors.accent;
     final contentColor = Color.lerp(unselectedColor, selectedColor, strength)!;
     final fontWeight = FontWeight.lerp(FontWeight.w600, FontWeight.w700, strength)!;
+    final iconScale = 1 + (strength * 0.12);
 
     return Expanded(
       child: Material(
@@ -220,7 +222,10 @@ class _CountlyNavTabButton extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 20, color: contentColor),
+              Transform.scale(
+                scale: iconScale,
+                child: Icon(icon, size: 20, color: contentColor),
+              ),
               const SizedBox(height: 3),
               Text(
                 label,

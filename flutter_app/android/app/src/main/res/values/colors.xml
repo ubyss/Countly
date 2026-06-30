@@ -6,6 +6,8 @@
     <color name="countly_widget_text">#FF15182D</color>
     <color name="countly_widget_muted">#FF6D7487</color>
     <color name="countly_widget_accent">#FF4949D8</color>
+    <color name="countly_widget_image_placeholder">#FFF0EFFF</color>
+    <color name="countly_widget_metric_bg">#FFF5F6FA</color>
     <color name="countly_widget_image_overlay">#66000000</color>
     <color name="countly_flip_shell">#FFD7DBE6</color>
     <color name="countly_flip_top">#FF4949D8</color>

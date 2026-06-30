@@ -3,12 +3,23 @@ package com.countly.countly
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.RectF
 import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 import java.io.File
+import kotlin.math.max
+
+private const val IMAGE_WIDTH_DP = 72f
+private const val IMAGE_HEIGHT_DP = 80f
+private const val IMAGE_CORNER_RADIUS_DP = 12f
 
 class CountlyWidgetProvider : HomeWidgetProvider() {
 
@@ -45,7 +56,6 @@ class CountlyWidgetProvider : HomeWidgetProvider() {
 
         bindImage(context, views, widgetData.getString("widget_image_path", null))
         bindCountdown(views, widgetData)
-        bindTargetDate(views, widgetData)
 
         views.setTextViewText(R.id.widget_title, name)
         views.setTextViewText(
@@ -54,46 +64,79 @@ class CountlyWidgetProvider : HomeWidgetProvider() {
         )
         views.setViewVisibility(R.id.widget_date, View.VISIBLE)
         views.setViewVisibility(R.id.widget_empty_message, View.GONE)
-        views.setViewVisibility(R.id.widget_flip_row, View.VISIBLE)
+        views.setViewVisibility(R.id.widget_metrics_row, View.VISIBLE)
 
         return views
     }
 
     private fun bindEmptyState(views: RemoteViews) {
         views.setTextViewText(R.id.widget_title, "Countly")
-        views.setTextViewText(R.id.widget_target_day, "--")
-        views.setTextViewText(R.id.widget_target_month, "---")
         views.setViewVisibility(R.id.widget_image, View.GONE)
         views.setViewVisibility(R.id.widget_image_placeholder, View.VISIBLE)
-        views.setViewVisibility(R.id.widget_flip_row, View.GONE)
+        views.setViewVisibility(R.id.widget_metrics_row, View.GONE)
         views.setViewVisibility(R.id.widget_date, View.GONE)
         views.setViewVisibility(R.id.widget_empty_message, View.VISIBLE)
     }
 
     private fun bindImage(context: Context, views: RemoteViews, imagePath: String?) {
-        if (imagePath.isNullOrBlank()) {
-            views.setViewVisibility(R.id.widget_image, View.GONE)
-            views.setViewVisibility(R.id.widget_image_placeholder, View.VISIBLE)
-            return
-        }
+        val bitmap = imagePath
+            ?.takeIf { it.isNotBlank() }
+            ?.let { File(it) }
+            ?.takeIf { it.exists() }
+            ?.let { BitmapFactory.decodeFile(it.absolutePath) }
 
-        val file = File(imagePath)
-        if (!file.exists()) {
-            views.setViewVisibility(R.id.widget_image, View.GONE)
-            views.setViewVisibility(R.id.widget_image_placeholder, View.VISIBLE)
-            return
-        }
-
-        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
         if (bitmap == null) {
             views.setViewVisibility(R.id.widget_image, View.GONE)
             views.setViewVisibility(R.id.widget_image_placeholder, View.VISIBLE)
             return
         }
 
-        views.setImageViewBitmap(R.id.widget_image, bitmap)
+        val density = context.resources.displayMetrics.density
+        val widthPx = (IMAGE_WIDTH_DP * density).toInt()
+        val heightPx = (IMAGE_HEIGHT_DP * density).toInt()
+        val radiusPx = IMAGE_CORNER_RADIUS_DP * density
+
+        views.setImageViewBitmap(
+            R.id.widget_image,
+            roundedRectBitmap(bitmap, widthPx, heightPx, radiusPx),
+        )
         views.setViewVisibility(R.id.widget_image, View.VISIBLE)
         views.setViewVisibility(R.id.widget_image_placeholder, View.GONE)
+    }
+
+    private fun roundedRectBitmap(
+        source: Bitmap,
+        widthPx: Int,
+        heightPx: Int,
+        radiusPx: Float,
+    ): Bitmap {
+        val cropped = centerCropBitmap(source, widthPx, heightPx)
+        val output = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        val rect = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
+
+        canvas.drawRoundRect(rect, radiusPx, radiusPx, paint)
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(cropped, 0f, 0f, paint)
+        return output
+    }
+
+    private fun centerCropBitmap(source: Bitmap, targetWidth: Int, targetHeight: Int): Bitmap {
+        val scale = max(
+            targetWidth.toFloat() / source.width,
+            targetHeight.toFloat() / source.height,
+        )
+        val scaledWidth = (source.width * scale).toInt().coerceAtLeast(1)
+        val scaledHeight = (source.height * scale).toInt().coerceAtLeast(1)
+        val scaled = Bitmap.createScaledBitmap(source, scaledWidth, scaledHeight, true)
+
+        val x = ((scaledWidth - targetWidth) / 2).coerceIn(0, max(0, scaledWidth - targetWidth))
+        val y = ((scaledHeight - targetHeight) / 2).coerceIn(0, max(0, scaledHeight - targetHeight))
+        val width = targetWidth.coerceAtMost(scaledWidth)
+        val height = targetHeight.coerceAtMost(scaledHeight)
+
+        return Bitmap.createBitmap(scaled, x, y, width, height)
     }
 
     private fun bindCountdown(views: RemoteViews, widgetData: SharedPreferences) {
@@ -106,23 +149,12 @@ class CountlyWidgetProvider : HomeWidgetProvider() {
         views.setTextViewText(R.id.widget_primary_label, primaryLabel.uppercase())
 
         if (secondaryValue.isNullOrBlank() || secondaryLabel.isNullOrBlank()) {
-            views.setViewVisibility(R.id.widget_secondary_flip, View.GONE)
+            views.setViewVisibility(R.id.widget_secondary_metric, View.GONE)
             return
         }
 
-        views.setViewVisibility(R.id.widget_secondary_flip, View.VISIBLE)
+        views.setViewVisibility(R.id.widget_secondary_metric, View.VISIBLE)
         views.setTextViewText(R.id.widget_secondary_value, secondaryValue)
         views.setTextViewText(R.id.widget_secondary_label, secondaryLabel.uppercase())
-    }
-
-    private fun bindTargetDate(views: RemoteViews, widgetData: SharedPreferences) {
-        views.setTextViewText(
-            R.id.widget_target_day,
-            widgetData.getString("widget_target_day", "--") ?: "--",
-        )
-        views.setTextViewText(
-            R.id.widget_target_month,
-            widgetData.getString("widget_target_month", "---") ?: "---",
-        )
     }
 }

@@ -10,12 +10,17 @@ class CountlyDatePickerField extends StatefulWidget {
     required this.currentTime,
     required this.onChanged,
     this.compact = false,
+    this.opensAbove = false,
   });
 
   final String value;
   final DateTime currentTime;
   final ValueChanged<String> onChanged;
   final bool compact;
+
+  /// Quando true, o painel do calendário abre acima do campo (útil em
+  /// bottom sheets onde o campo fica perto da parte inferior da tela).
+  final bool opensAbove;
 
   @override
   State<CountlyDatePickerField> createState() => _CountlyDatePickerFieldState();
@@ -94,6 +99,7 @@ class _CountlyDatePickerFieldState extends State<CountlyDatePickerField> {
     if (digits.length < 4) {
       if (!_pickerOpen && digits.isNotEmpty) {
         setState(() => _pickerOpen = true);
+        _ensureVisibleWhenOpeningAbove();
       }
       return;
     }
@@ -116,10 +122,14 @@ class _CountlyDatePickerFieldState extends State<CountlyDatePickerField> {
     final monthChanged = nextMonth.year != _visibleMonth.year || nextMonth.month != _visibleMonth.month;
 
     if (monthChanged || shouldOpenPicker) {
+      final wasClosed = !_pickerOpen;
       setState(() {
         _visibleMonth = getMonthStart(nextMonth);
         _pickerOpen = true;
       });
+      if (wasClosed) {
+        _ensureVisibleWhenOpeningAbove();
+      }
     }
   }
   DateTime get _currentMonthStart => getMonthStart(widget.currentTime);
@@ -133,6 +143,32 @@ class _CountlyDatePickerFieldState extends State<CountlyDatePickerField> {
       _visibleMonth = _currentMonthStart;
     }
     setState(() => _pickerOpen = true);
+    _ensureVisibleWhenOpeningAbove();
+  }
+
+  void _togglePicker() {
+    final willOpen = !_pickerOpen;
+    setState(() => _pickerOpen = willOpen);
+    if (willOpen) {
+      _ensureVisibleWhenOpeningAbove();
+    }
+  }
+
+  void _ensureVisibleWhenOpeningAbove() {
+    if (!widget.opensAbove) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      Scrollable.ensureVisible(
+        context,
+        alignment: 0.35,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+    });
   }
 
   void _selectDate(DateTime date) {
@@ -175,195 +211,210 @@ class _CountlyDatePickerFieldState extends State<CountlyDatePickerField> {
     final calendarDays = getMonthCalendarDays(_visibleMonth.year, _visibleMonth.month);
     final fieldHeight = widget.compact ? 44.0 : 52.0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          height: fieldHeight,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colors.borderStrong),
-            color: colors.input,
+    final inputField = Container(
+      height: fieldHeight,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.borderStrong),
+        color: colors.input,
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: _openPicker,
+            icon: Icon(Icons.calendar_today_rounded, size: 18, color: colors.muted),
           ),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: _openPicker,
-                icon: Icon(Icons.calendar_today_rounded, size: 18, color: colors.muted),
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              onTap: _openPicker,
+              inputFormatters: const [BrazilianDateInputFormatter()],
+              onSubmitted: (_) {
+                _commitInput();
+                setState(() => _pickerOpen = false);
+              },
+              onEditingComplete: () {
+                _commitInput();
+                setState(() => _pickerOpen = false);
+              },
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: 'dd/mm/aaaa',
+                hintStyle: TextStyle(color: colors.softMuted),
               ),
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  onTap: _openPicker,
-                  inputFormatters: const [BrazilianDateInputFormatter()],
-                  onSubmitted: (_) {
-                    _commitInput();
-                    setState(() => _pickerOpen = false);
-                  },
-                  onEditingComplete: () {
-                    _commitInput();
-                    setState(() => _pickerOpen = false);
-                  },
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'dd/mm/aaaa',
-                    hintStyle: TextStyle(color: colors.softMuted),
-                  ),
-                  style: TextStyle(color: colors.inputText, fontSize: 14),
-                ),
-              ),              IconButton(
-                onPressed: () => setState(() => _pickerOpen = !_pickerOpen),
-                icon: Icon(
-                  _pickerOpen ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-                  size: 20,
-                  color: colors.muted,
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (_pickerOpen) ...[
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: colors.border),
-              color: colors.card,
-              boxShadow: [
-                BoxShadow(
-                  color: colors.text.withValues(alpha: 0.12),
-                  blurRadius: 28,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+              style: TextStyle(color: colors.inputText, fontSize: 14),
             ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 68,
-                      child: Row(
-                        children: [
-                          if (_canGoToPreviousMonth)
-                            _CalendarNavButton(
-                              icon: Icons.chevron_left_rounded,
-                              colors: colors,
-                              onTap: () => setState(() {
-                                _visibleMonth = DateTime(_visibleMonth.year, _visibleMonth.month - 1);
-                              }),
-                            )
-                          else
-                            const SizedBox(width: 34),
-                          if (_isViewingFutureMonth)
-                            _CalendarNavButton(
-                              icon: Icons.undo_rounded,
-                              colors: colors,
-                              onTap: () => setState(() => _visibleMonth = _currentMonthStart),
-                            ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        formatCalendarMonth(_visibleMonth),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: colors.text,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    _CalendarNavButton(
-                      icon: Icons.chevron_right_rounded,
-                      colors: colors,
-                      onTap: () => setState(() {
-                        _visibleMonth = DateTime(_visibleMonth.year, _visibleMonth.month + 1);
-                      }),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-                      .map(
-                        (weekday) => Expanded(
-                          child: Text(
-                            weekday,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: colors.softMuted,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-                const SizedBox(height: 7),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: calendarDays.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7,
-                    mainAxisSpacing: 6,
-                    crossAxisSpacing: 6,
-                  ),
-                  itemBuilder: (context, index) {
-                    final date = calendarDays[index];
-                    if (date == null) {
-                      return const SizedBox.shrink();
-                    }
-
-                    final iso = toDateInputValue(date);
-                    final isSelected = widget.value == iso;
-                    final isDisabled = isDateBeforeToday(date, widget.currentTime);
-
-                    return Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: isDisabled ? null : () => _selectDate(date),
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            gradient: isSelected
-                                ? LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [colors.accent, colors.accentDark],
-                                  )
-                                : null,
-                            color: isSelected ? null : Colors.transparent,
-                          ),
-                          child: Text(
-                            '${date.day}',
-                            style: TextStyle(
-                              color: isSelected
-                                  ? Colors.white
-                                  : isDisabled
-                                      ? colors.softMuted.withValues(alpha: 0.45)
-                                      : colors.text,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+          ),
+          IconButton(
+            onPressed: _togglePicker,
+            icon: Icon(
+              _pickerOpen
+                  ? (widget.opensAbove ? Icons.expand_more_rounded : Icons.expand_less_rounded)
+                  : (widget.opensAbove ? Icons.expand_less_rounded : Icons.expand_more_rounded),
+              size: 20,
+              color: colors.muted,
             ),
           ),
         ],
+      ),
+    );
+
+    final calendarPanel = _buildCalendarPanel(colors, calendarDays);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (widget.opensAbove && _pickerOpen) ...[
+          calendarPanel,
+          const SizedBox(height: 10),
+        ],
+        inputField,
+        if (!widget.opensAbove && _pickerOpen) ...[
+          const SizedBox(height: 10),
+          calendarPanel,
+        ],
       ],
+    );
+  }
+
+  Widget _buildCalendarPanel(CountlyColors colors, List<DateTime?> calendarDays) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: colors.border),
+        color: colors.card,
+        boxShadow: [
+          BoxShadow(
+            color: colors.text.withValues(alpha: 0.12),
+            blurRadius: 28,
+            offset: Offset(0, widget.opensAbove ? -10 : 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 68,
+                child: Row(
+                  children: [
+                    if (_canGoToPreviousMonth)
+                      _CalendarNavButton(
+                        icon: Icons.chevron_left_rounded,
+                        colors: colors,
+                        onTap: () => setState(() {
+                          _visibleMonth = DateTime(_visibleMonth.year, _visibleMonth.month - 1);
+                        }),
+                      )
+                    else
+                      const SizedBox(width: 34),
+                    if (_isViewingFutureMonth)
+                      _CalendarNavButton(
+                        icon: Icons.undo_rounded,
+                        colors: colors,
+                        onTap: () => setState(() => _visibleMonth = _currentMonthStart),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  formatCalendarMonth(_visibleMonth),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: colors.text,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              _CalendarNavButton(
+                icon: Icons.chevron_right_rounded,
+                colors: colors,
+                onTap: () => setState(() {
+                  _visibleMonth = DateTime(_visibleMonth.year, _visibleMonth.month + 1);
+                }),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+                .map(
+                  (weekday) => Expanded(
+                    child: Text(
+                      weekday,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: colors.softMuted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 7),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: calendarDays.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisSpacing: 6,
+              crossAxisSpacing: 6,
+            ),
+            itemBuilder: (context, index) {
+              final date = calendarDays[index];
+              if (date == null) {
+                return const SizedBox.shrink();
+              }
+
+              final iso = toDateInputValue(date);
+              final isSelected = widget.value == iso;
+              final isDisabled = isDateBeforeToday(date, widget.currentTime);
+
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: isDisabled ? null : () => _selectDate(date),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      gradient: isSelected
+                          ? LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [colors.accent, colors.accentDark],
+                            )
+                          : null,
+                      color: isSelected ? null : Colors.transparent,
+                    ),
+                    child: Text(
+                      '${date.day}',
+                      style: TextStyle(
+                        color: isSelected
+                            ? Colors.white
+                            : isDisabled
+                                ? colors.softMuted.withValues(alpha: 0.45)
+                                : colors.text,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

@@ -11,10 +11,13 @@ import '../services/countdown_platform_sync.dart';
 import '../services/countdown_storage.dart';
 import '../services/countly_preferences.dart';
 import '../theme/countly_colors.dart';
+import '../theme/countly_motion.dart';
+import '../theme/countly_tokens.dart';
 import '../utils/countdown_utils.dart';
 import '../widgets/countdown_card.dart';
 import '../widgets/creation_sheet.dart';
 import '../widgets/liquid_glass_bar.dart';
+import '../widgets/staggered_fade_in.dart';
 import '../widgets/year_calendar.dart';
 
 enum CountdownViewMode { carousel, single, grid }
@@ -274,19 +277,33 @@ class _CountlyHeader extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 onTap: onThemeToggle,
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
+                borderRadius: BorderRadius.circular(CountlyRadius.sm),
+                child: AnimatedContainer(
+                  duration: CountlyMotion.base,
+                  curve: CountlyMotion.emphasized,
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(CountlyRadius.sm),
                     border: Border.all(color: toggleBorder),
                     color: toggleFill,
                   ),
-                  child: Icon(
-                    isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                    size: 20,
-                    color: toggleIcon,
+                  child: Center(
+                    child: AnimatedSwitcher(
+                      duration: CountlyMotion.base,
+                      switchInCurve: CountlyMotion.playful,
+                      switchOutCurve: CountlyMotion.standard,
+                      transitionBuilder: (child, animation) => RotationTransition(
+                        turns: Tween<double>(begin: 0.7, end: 1).animate(animation),
+                        child: FadeTransition(opacity: animation, child: child),
+                      ),
+                      child: Icon(
+                        isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                        key: ValueKey(isDark),
+                        size: 20,
+                        color: toggleIcon,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -353,7 +370,10 @@ class _CountdownsView extends StatelessWidget {
             childAspectRatio: maxWidth / targetCardHeight,
           ),
           itemCount: countdowns.length,
-          itemBuilder: (context, index) => _buildCard(countdowns[index]),
+          itemBuilder: (context, index) => StaggeredFadeIn(
+            index: index,
+            child: _buildCard(countdowns[index]),
+          ),
         );
       case CountdownViewMode.grid:
         const spacing = 12.0;
@@ -370,9 +390,12 @@ class _CountdownsView extends StatelessWidget {
             childAspectRatio: itemWidth / targetCardHeight,
           ),
           itemCount: countdowns.length,
-          itemBuilder: (context, index) => _buildCard(
-            countdowns[index],
-            compactTitle: true,
+          itemBuilder: (context, index) => StaggeredFadeIn(
+            index: index,
+            child: _buildCard(
+              countdowns[index],
+              compactTitle: true,
+            ),
           ),
         );
     }
@@ -567,11 +590,14 @@ class _CountdownCarouselState extends State<_CountdownCarousel> {
         final countdown = widget.countdowns[index];
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: CountdownCard(
-            countdown: countdown,
-            currentTime: widget.currentTime,
-            showShadow: false,
-            onEdit: () => widget.onEdit(countdown),
+          child: StaggeredFadeIn(
+            index: index,
+            child: CountdownCard(
+              countdown: countdown,
+              currentTime: widget.currentTime,
+              showShadow: false,
+              onEdit: () => widget.onEdit(countdown),
+            ),
           ),
         );
       },
@@ -740,21 +766,32 @@ class _CountBadge extends StatelessWidget {
     final badgeFill = isDark ? colors.accentSoft : Colors.white.withValues(alpha: 0.2);
     final badgeText = isDark ? colors.muted : Colors.white;
 
-    return Container(
+    return AnimatedContainer(
+      duration: CountlyMotion.base,
+      curve: CountlyMotion.emphasized,
       constraints: const BoxConstraints(minWidth: 26),
       height: 24,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(CountlyRadius.sm - 2),
         color: badgeFill,
       ),
-      child: Text(
-        '$count',
-        style: TextStyle(
-          color: badgeText,
-          fontSize: 13,
-          fontWeight: FontWeight.w800,
+      child: AnimatedSwitcher(
+        duration: CountlyMotion.fast,
+        switchInCurve: CountlyMotion.playful,
+        transitionBuilder: (child, animation) => ScaleTransition(
+          scale: animation,
+          child: FadeTransition(opacity: animation, child: child),
+        ),
+        child: Text(
+          '$count',
+          key: ValueKey(count),
+          style: TextStyle(
+            color: badgeText,
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
     );
@@ -855,7 +892,8 @@ class _ViewModeButton extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
+            duration: CountlyMotion.fast,
+            curve: CountlyMotion.playful,
             width: 30,
             height: 28,
             alignment: Alignment.center,
@@ -864,10 +902,15 @@ class _ViewModeButton extends StatelessWidget {
               color: selected ? selectedBackground : Colors.transparent,
               border: selected ? selectedBorder : null,
             ),
-            child: Icon(
-              icon,
-              size: 16,
-              color: selected ? selectedIconColor : idleColor,
+            child: AnimatedScale(
+              duration: CountlyMotion.fast,
+              curve: CountlyMotion.playful,
+              scale: selected ? 1.08 : 1,
+              child: Icon(
+                icon,
+                size: 16,
+                color: selected ? selectedIconColor : idleColor,
+              ),
             ),
           ),
         ),
@@ -903,10 +946,19 @@ class _SortToggleButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           child: Padding(
             padding: const EdgeInsets.all(6),
-            child: FaIcon(
-              isSoonest ? FontAwesomeIcons.arrowDownWideShort : FontAwesomeIcons.arrowUpWideShort,
-              size: 15,
-              color: iconColor,
+            child: AnimatedSwitcher(
+              duration: CountlyMotion.fast,
+              switchInCurve: CountlyMotion.playful,
+              transitionBuilder: (child, animation) => RotationTransition(
+                turns: Tween<double>(begin: 0.5, end: 1).animate(animation),
+                child: FadeTransition(opacity: animation, child: child),
+              ),
+              child: FaIcon(
+                isSoonest ? FontAwesomeIcons.arrowDownWideShort : FontAwesomeIcons.arrowUpWideShort,
+                key: ValueKey(isSoonest),
+                size: 15,
+                color: iconColor,
+              ),
             ),
           ),
         ),
