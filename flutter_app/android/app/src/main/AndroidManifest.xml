@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
 
     <application
-        android:label="countly"
+        android:label="Countly"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -28,6 +28,17 @@
         </activity>
 
         <receiver
+            android:name=".CountlySmallWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/countly_widget_small_info" />
+        </receiver>
+
+        <receiver
             android:name=".CountlyWidgetProvider"
             android:exported="true">
             <intent-filter>
@@ -36,6 +47,17 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/countly_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".CountlyLargeWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/countly_widget_large_info" />
         </receiver>
 
         <receiver
